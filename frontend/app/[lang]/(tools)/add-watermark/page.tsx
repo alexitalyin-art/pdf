@@ -1,93 +1,47 @@
-"use client";
+import type { Metadata } from 'next';
+import type { Locale } from '@/i18n-config';
+import { getDictionary } from '@/get-dictionary';
+import { Watermarker } from '@/components/Watermarker';
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 
-import React, { useState } from "react";
-import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-export default function AddWatermarkPage() {
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
-  const [watermarkText, setWatermarkText] = useState<string>("Confidential");
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setPdfFile(e.target.files[0]);
-    }
+export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
+  const dictionary = await getDictionary(lang);
+  // Assuming you will add 'add_watermark' to your dictionaries
+  const t = dictionary.add_watermark || {};
+  return {
+    title: t.meta_title || 'Add Watermark to PDF | Free Online Watermarking Tool',
+    description: t.meta_description || 'Easily add a text watermark to your PDF documents. Customize text, font size, and opacity. Secure and free to use in your browser.',
   };
+}
 
-  const handleApplyWatermark = async () => {
-    if (!pdfFile) return;
-
-    try {
-      const arrayBuffer = await pdfFile.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-      const pages = pdfDoc.getPages();
-      pages.forEach((page) => {
-        const { width, height } = page.getSize();
-        page.drawText(watermarkText, {
-          x: width / 2 - 100,
-          y: height / 2,
-          size: 40,
-          font: helveticaFont,
-          color: rgb(0.75, 0.75, 0.75),
-          rotate: degrees(45), // ✅ FIX
-          opacity: 0.5,
-        });
-      });
-
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([new Uint8Array(pdfBytes)], {
-        type: "application/pdf",
-      });
-      const url = URL.createObjectURL(blob);
-      setOutputPdfUrl(url);
-    } catch (error) {
-      console.error("Error applying watermark:", error);
-    }
-  };
+export default async function AddWatermarkPage({ params: { lang } }: { params: { lang: Locale } }) {
+  const dictionary = await getDictionary(lang);
+  // Assuming you will add 'add_watermark' to your dictionaries
+  const t = dictionary.add_watermark || {};
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <Card className="max-w-5xl mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl md:text-4xl font-bold">
-            Add Watermark
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <input type="file" accept="application/pdf" onChange={handleFileChange} />
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold">{t.title || 'Add Watermark to PDF'}</h1>
+        <p className="text-lg text-muted-foreground mt-2">{t.subtitle || 'Apply a text watermark to every page of your PDF.'}</p>
+      </div>
 
-          <input
-            type="text"
-            placeholder="Enter watermark text"
-            value={watermarkText}
-            onChange={(e) => setWatermarkText(e.target.value)}
-            className="w-full border rounded px-2 py-1"
-          />
+      <Suspense fallback={<div className="flex justify-center"><Loader2 className="w-12 h-12 animate-spin" /></div>}>
+        <Watermarker dictionary={t as any} />
+      </Suspense>
 
-          <Button onClick={handleApplyWatermark} disabled={!pdfFile}>
-            Apply Watermark
-          </Button>
-
-          {outputPdfUrl && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Watermarked PDF:</h3>
-              <iframe src={outputPdfUrl} width="100%" height="500px"></iframe>
-              <a
-                href={outputPdfUrl}
-                download="watermarked.pdf"
-                className="block mt-2 text-blue-600 underline"
-              >
-                Download PDF
-              </a>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* You can add translated SEO content to your dictionary files later */}
+      <div className="prose dark:prose-invert max-w-4xl mx-auto mt-12">
+        <h2>How to Add a Watermark to a PDF</h2>
+        <ol>
+          <li>Drag and drop your PDF file into the upload area above.</li>
+          <li>Enter the text you want to use as your watermark.</li>
+          <li>Adjust the font size and opacity using the sliders.</li>
+          <li>Click the "Add Watermark & Download" button.</li>
+          <li>Your new, watermarked PDF will be generated for you to download instantly.</li>
+        </ol>
+      </div>
     </div>
   );
 }
