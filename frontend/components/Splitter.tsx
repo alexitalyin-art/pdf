@@ -21,22 +21,21 @@ const PDFCarouselViewer = dynamic(() =>
 
 const parsePageRanges = (rangeStr: string): number[] => {
   if (!rangeStr.trim()) return [];
+  const pages = new Set<number>();
   const ranges = rangeStr.split(',');
-  const pages: number[] = [];
   for (const range of ranges) {
     const trimmedRange = range.trim();
     if (trimmedRange.includes('-')) {
       const [start, end] = trimmedRange.split('-').map(Number);
-      if (!isNaN(start) && !isNaN(end)) for (let i = start; i <= end; i++) pages.push(i);
+      if (!isNaN(start) && !isNaN(end)) for (let i = start; i <= end; i++) pages.add(i);
     } else {
       const pageNum = Number(trimmedRange);
-      if (!isNaN(pageNum)) pages.push(pageNum);
+      if (!isNaN(pageNum)) pages.add(pageNum);
     }
   }
-  return [...new Set(pages)].sort((a, b) => a - b);
+  return Array.from(pages).sort((a, b) => a - b);
 };
 
-// Simplified dictionary type
 interface SplitToolDict {
     dropzone_text: string;
     label_pages: string;
@@ -54,7 +53,6 @@ export const Splitter = ({ dictionary }: { dictionary: SplitToolDict }) => {
   const [pageRange, setPageRange] = useState('');
   const [isSplitting, setIsSplitting] = useState(false);
   const [splitPdfUrl, setSplitPdfUrl] = useState<string | null>(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -88,7 +86,14 @@ export const Splitter = ({ dictionary }: { dictionary: SplitToolDict }) => {
       copiedPages.forEach(page => newDoc.addPage(page));
       
       const pdfBytes = await newDoc.save();
-      const blob = new Blob([pdfBytes.buffer], { type: 'application/pdf' });
+      
+      // --- THIS IS THE DEFINITIVE FIX ---
+      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      uint8Array.set(pdfBytes);
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      // ------------------------------------
+
       const url = URL.createObjectURL(blob);
       setSplitPdfUrl(url);
     } catch (error) {

@@ -3,9 +3,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PDFDocument } from 'pdf-lib';
-import { FileText, UploadCloud, Save } from 'lucide-react';
+import { UploadCloud, Save, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
-interface Metadata {
+interface MetadataState {
   title: string;
   author: string;
   subject: string;
@@ -16,7 +21,7 @@ export default function EditMetadataPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
-  const [metadata, setMetadata] = useState<Metadata>({ title: '', author: '', subject: '', keywords: '' });
+  const [metadata, setMetadata] = useState<MetadataState>({ title: '', author: '', subject: '', keywords: '' });
   
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -28,7 +33,6 @@ export default function EditMetadataPage() {
 
   useEffect(() => {
     if (!file) return;
-
     const readMetadata = async () => {
       try {
         const existingPdfBytes = await file.arrayBuffer();
@@ -38,20 +42,18 @@ export default function EditMetadataPage() {
           title: pdfDoc.getTitle() || '',
           author: pdfDoc.getAuthor() || '',
           subject: pdfDoc.getSubject() || '',
-          keywords: pdfDoc.getKeywords() || '',
+          keywords: (pdfDoc.getKeywords() || '').replace(/;/g, ','),
         });
       } catch (error) {
-        console.error("Failed to read metadata", error);
-        alert("Could not read metadata from this PDF. It might be corrupted or protected.");
+        alert("Could not read metadata from this PDF.");
       }
     };
-    
     readMetadata();
   }, [file]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
 
-  const handleMetadataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMetadataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setMetadata(prev => ({ ...prev, [name]: value }));
   };
@@ -71,11 +73,17 @@ export default function EditMetadataPage() {
       pdfDoc.setModificationDate(new Date());
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes.buffer], { type: 'application/pdf' });
+
+      // --- THIS IS THE DEFINITIVE FIX ---
+      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      uint8Array.set(pdfBytes);
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      // ------------------------------------
+
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (error) {
-      console.error('Error updating metadata:', error);
       alert('An error occurred while updating metadata.');
     } finally {
       setIsProcessing(false);
@@ -84,57 +92,62 @@ export default function EditMetadataPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Edit PDF Metadata</h1>
-        <p className="text-md md:text-lg text-gray-600">Change the Title, Author, Subject, and Keywords of your PDF.</p>
-      </div>
-      <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-2xl mx-auto">
-        {!file ? (
-          <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer text-center ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}>
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center justify-center"><UploadCloud className="w-12 h-12 text-gray-400 mb-4" /><p className="text-lg text-gray-600">Drag & drop a PDF here</p></div>
-          </div>
-        ) : (
-          <div>
-            <div className="flex items-center justify-between p-3 bg-gray-100 rounded-md mb-6">
-              <div className="flex items-center"><FileText className="w-5 h-5 text-gray-500 mr-3" /><span className="font-medium text-gray-800">{file.name}</span></div>
-              <button onClick={() => setFile(null)} className="text-sm text-red-500 hover:underline">Choose a different file</button>
-            </div>
-            
-            <div className="space-y-4">
-                <div>
-                    <label htmlFor="title" className="block text-lg font-semibold mb-2">Title</label>
-                    <input type="text" name="title" value={metadata.title} onChange={handleMetadataChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-                </div>
-                <div>
-                    <label htmlFor="author" className="block text-lg font-semibold mb-2">Author</label>
-                    <input type="text" name="author" value={metadata.author} onChange={handleMetadataChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-                </div>
-                <div>
-                    <label htmlFor="subject" className="block text-lg font-semibold mb-2">Subject</label>
-                    <input type="text" name="subject" value={metadata.subject} onChange={handleMetadataChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-                </div>
-                <div>
-                    <label htmlFor="keywords" className="block text-lg font-semibold mb-2">Keywords</label>
-                    <input type="text" name="keywords" value={metadata.keywords} onChange={handleMetadataChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Comma, separated, values" />
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl md:text-4xl font-bold">Edit PDF Metadata</CardTitle>
+          <CardDescription className="text-md md:text-lg">Change the Title, Author, Subject, and Keywords.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            {!file ? (
+            <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer text-center transition-colors ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
+                <input {...getInputProps()} />
+                <div className="flex flex-col items-center justify-center space-y-4">
+                <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                <p className="text-lg text-muted-foreground">Drag & drop a PDF here, or click to select</p>
                 </div>
             </div>
-
-            <div className="flex justify-center mt-8">
-              <button onClick={handleSave} disabled={isProcessing} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2">
-                <Save />
-                {isProcessing ? 'Saving...' : 'Save Changes'}
-              </button>
+            ) : (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between p-3 bg-secondary rounded-md">
+                    <p className="font-medium text-secondary-foreground truncate pr-4">{file.name}</p>
+                    <Button variant="ghost" size="sm" onClick={() => setFile(null)}>Change File</Button>
+                </div>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input id="title" name="title" value={metadata.title} onChange={handleMetadataChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="author">Author</Label>
+                        <Input id="author" name="author" value={metadata.author} onChange={handleMetadataChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="subject">Subject</Label>
+                        <Textarea id="subject" name="subject" value={metadata.subject} onChange={handleMetadataChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="keywords">Keywords</Label>
+                        <Input id="keywords" name="keywords" value={metadata.keywords} onChange={handleMetadataChange} placeholder="Comma, separated, values" />
+                    </div>
+                </div>
+                <Button onClick={handleSave} disabled={isProcessing} className="w-full text-lg py-6">
+                    <Save className="mr-2 h-5 w-5" />
+                    {isProcessing ? 'Saving...' : 'Save Changes & Download'}
+                </Button>
             </div>
-          </div>
-        )}
-        {outputPdfUrl && (
-          <div className="mt-8 text-center p-6 bg-green-50 border-green-200 rounded-lg">
-            <h3 className="text-2xl font-semibold text-green-800 mb-4">Metadata Updated!</h3>
-            <a href={outputPdfUrl} download={`metadata-updated-${file?.name}`} className="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700">Download Updated PDF</a>
-          </div>
-        )}
-      </div>
+            )}
+            {outputPdfUrl && (
+            <div className="mt-6 text-center p-6 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 border rounded-lg">
+                <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">Metadata Updated!</h3>
+                <Button asChild size="lg">
+                <a href={outputPdfUrl} download={`metadata-updated-${file?.name}`}>
+                    Download Updated PDF
+                </a>
+                </Button>
+            </div>
+            )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

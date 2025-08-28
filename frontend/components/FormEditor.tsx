@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { PDFDocument, PDFTextField, PDFCheckBox, PDFDropdown, PDFRadioGroup } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
-import type { PDFPageProxy } from 'pdfjs-dist';
 import { Loader2, Save } from 'lucide-react';
 import { PageRenderer } from './PageRenderer';
 
@@ -19,6 +18,7 @@ interface FormField {
   options?: string[];
   pageIndex: number;
 }
+
 interface FormEditorProps {
     file: File;
     onReset: () => void;
@@ -26,30 +26,26 @@ interface FormEditorProps {
 
 export const FormEditor = ({ file, onReset }: FormEditorProps) => {
   const [isProcessing, setIsProcessing] = useState(true);
+  const [processingMessage, setProcessingMessage] = useState('Analyzing PDF...');
   const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
   
   const [pdfDoc, setPdfDoc] = useState<PDFDocument | null>(null);
   const [pdfJsDoc, setPdfJsDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
-  const [pageProxies, setPageProxies] = useState<PDFPageProxy[]>([]);
+  const [pageProxies, setPageProxies] = useState<pdfjsLib.PDFPageProxy[]>([]);
   const [formFields, setFormFields] = useState<FormField[]>([]);
   const [fieldValues, setFieldValues] = useState<{[key: string]: string | boolean}>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
-  // This effect now reliably measures the container width
   useEffect(() => {
-    if (containerRef.current && containerWidth === 0) {
-      setContainerWidth(containerRef.current.clientWidth);
-    }
+    if (containerRef.current) setContainerWidth(containerRef.current.clientWidth);
     const handleResize = () => {
         if (containerRef.current) setContainerWidth(containerRef.current.clientWidth);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [containerWidth]);
+  }, []);
 
-
-  // This single, robust effect handles all PDF processing
   useEffect(() => {
     if (!file) return;
 
@@ -58,7 +54,6 @@ export const FormEditor = ({ file, onReset }: FormEditorProps) => {
       const arrayBuffer = await file.arrayBuffer();
       const pdfData = new Uint8Array(arrayBuffer);
 
-      // Load both library instances at once
       const [loadedPdfDoc, loadedPdfJsDoc] = await Promise.all([
         PDFDocument.load(pdfData),
         pdfjsLib.getDocument({ data: pdfData }).promise,
@@ -67,15 +62,10 @@ export const FormEditor = ({ file, onReset }: FormEditorProps) => {
       setPdfDoc(loadedPdfDoc);
       setPdfJsDoc(loadedPdfJsDoc);
 
-      // Pre-load all page proxy objects
-      const pagePromises = [];
-      for (let i = 1; i <= loadedPdfJsDoc.numPages; i++) {
-        pagePromises.push(loadedPdfJsDoc.getPage(i));
-      }
+      const pagePromises = Array.from({ length: loadedPdfJsDoc.numPages }, (_, i) => loadedPdfJsDoc.getPage(i + 1));
       const loadedPageProxies = await Promise.all(pagePromises);
       setPageProxies(loadedPageProxies);
 
-      // Extract initial form values
       const form = loadedPdfDoc.getForm();
       const libFields = form.getFields();
       const initialValues: {[key: string]: string | boolean} = {};
@@ -93,7 +83,6 @@ export const FormEditor = ({ file, onReset }: FormEditorProps) => {
     processPdf();
   }, [file]);
 
-  // This effect extracts field positions once everything is ready
   useEffect(() => {
     if (!pageProxies.length || !pdfDoc || containerWidth === 0) return;
     
@@ -152,7 +141,14 @@ export const FormEditor = ({ file, onReset }: FormEditorProps) => {
     setIsProcessing(true);
     try {
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes.buffer], { type: 'application/pdf' });
+
+      // --- THIS IS THE DEFINITIVE FIX ---
+      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      uint8Array.set(pdfBytes);
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      // ------------------------------------
+      
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (e) {
@@ -161,13 +157,19 @@ export const FormEditor = ({ file, onReset }: FormEditorProps) => {
     setIsProcessing(false);
   };
   
+  if (isProcessing && pageProxies.length === 0) {
+    return <div className="text-center py-10"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">{processingMessage}</p></div>
+  }
+  
   if (outputPdfUrl) {
     return (
-        <div className="mt-8 text-center p-6 bg-green-50 border-green-200 rounded-lg">
-            <h3 className="text-2xl font-semibold text-green-800 mb-4">Your Filled PDF is Ready!</h3>
+        <div className="mt-8 text-center p-6 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 border rounded-lg">
+            <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">Your Filled PDF is Ready!</h3>
             <div className='flex justify-center items-center gap-4'>
                 <a href={outputPdfUrl} download={`filled-${file?.name}`} className="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700">Download PDF</a>
-                <button onClick={onReset} className="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700">Fill Another PDF</button>
+                <button onClick={onReset} className="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700">
+                    Fill Another PDF
+                </button>
             </div>
         </div>
     )
@@ -181,38 +183,33 @@ export const FormEditor = ({ file, onReset }: FormEditorProps) => {
             {isProcessing ? 'Processing...' : 'Save Filled PDF'}
           </button>
       </div>
-      
-      {isProcessing ? (
-         <div className="text-center py-10"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Analyzing PDF...</p></div>
-      ) : (
-        <div className="space-y-4">
-            {pageProxies.map((page, pageIndex) => {
-            const pageFields = formFields.filter(f => f.pageIndex === pageIndex);
-            const scale = containerWidth > 0 ? containerWidth / page.getViewport({scale: 1.0}).width : 0;
+      <div className="space-y-4">
+        {pageProxies.map((page, pageIndex) => {
+          const pageFields = formFields.filter(f => f.pageIndex === pageIndex);
+          const scale = containerWidth > 0 ? containerWidth / page.getViewport({scale: 1.0}).width : 0;
 
-            return (
-                <div key={pageIndex} className="relative shadow-lg">
-                    <PageRenderer page={page} scale={scale} />
-                    {pageFields.map(field => {
-                        const style = { position: 'absolute', left: `${field.x}px`, top: `${field.y}px`, width: `${field.width}px`, height: `${field.height}px`, border: '1px solid #3b82f6', background: 'rgba(59, 130, 246, 0.1)', fontSize: '14px' } as React.CSSProperties;
-                        if (field.type === 'text') {
-                        return <textarea key={field.name} value={fieldValues[field.name] as string || ''} onChange={(e) => handleFieldChange(field.name, e.target.value)} style={{...style, resize: 'none'}} />
-                        }
-                        if (field.type === 'checkbox') {
-                            return <input key={field.name} type="checkbox" checked={fieldValues[field.name] as boolean || false} onChange={(e) => handleFieldChange(field.name, e.target.checked)} style={{...style, background: 'rgba(59, 130, 246, 0.2)'}} />
-                        }
-                        if (field.type === 'dropdown') {
-                            return <select key={field.name} value={fieldValues[field.name] as string || ''} onChange={(e) => handleFieldChange(field.name, e.target.value)} style={style}>
-                            {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        }
-                        return null;
-                    })}
-                </div>
-            )
-            })}
-        </div>
-      )}
+          return (
+            <div key={pageIndex} className="relative shadow-lg">
+                <PageRenderer page={page} scale={scale} />
+                {pageFields.map(field => {
+                    const style = { position: 'absolute', left: `${field.x}px`, top: `${field.y}px`, width: `${field.width}px`, height: `${field.height}px`, border: '1px solid #3b82f6', background: 'rgba(59, 130, 246, 0.1)', fontSize: '14px' } as React.CSSProperties;
+                    if (field.type === 'text') {
+                      return <textarea key={field.name} value={fieldValues[field.name] as string || ''} onChange={(e) => handleFieldChange(field.name, e.target.value)} style={{...style, resize: 'none'}} />
+                    }
+                    if (field.type === 'checkbox') {
+                        return <input key={field.name} type="checkbox" checked={fieldValues[field.name] as boolean || false} onChange={(e) => handleFieldChange(field.name, e.target.checked)} style={{...style, background: 'rgba(59, 130, 246, 0.2)'}} />
+                    }
+                    if (field.type === 'dropdown') {
+                        return <select key={field.name} value={fieldValues[field.name] as string || ''} onChange={(e) => handleFieldChange(field.name, e.target.value)} style={style}>
+                        {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                    }
+                    return null;
+                })}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 };

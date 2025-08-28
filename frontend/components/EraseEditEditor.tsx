@@ -9,9 +9,8 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { Loader2, Save, XCircle, Edit, RotateCcw } from 'lucide-react';
 import { Rnd } from 'react-rnd';
 import dynamic from 'next/dynamic';
+import { Button } from '@/components/ui/button';
 
-// --- THIS IS THE FIX ---
-// We must also dynamically import the viewer INSIDE this component.
 const PDFCarouselViewer = dynamic(() => import('@/components/PDFCarouselViewer').then(mod => mod.PDFCarouselViewer), {
   ssr: false,
   loading: () => <div className="text-center py-20"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Viewer...</p></div>,
@@ -35,21 +34,19 @@ interface PlacedItem {
 
 interface EraseEditEditorProps {
     file: File;
+    onBack: () => void;
 }
 
-export const EraseEditEditor = ({ file }: EraseEditEditorProps) => {
+export default function EraseEditEditor({ file, onBack }: EraseEditEditorProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  
   const [items, setItems] = useState<PlacedItem[]>([]);
   const viewerContainerRef = useRef<HTMLDivElement>(null);
-  
   const [isErasing, setIsErasing] = useState(false);
   const [crop, setCrop] = useState<Crop>();
   const [imgSrc, setImgSrc] = useState('');
-
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [pdfJsDoc, setPdfJsDoc] = useState<PDFDocumentProxy | null>(null);
   
@@ -105,7 +102,6 @@ export const EraseEditEditor = ({ file }: EraseEditEditorProps) => {
 
       for (const item of items) {
         if (item.page < 1 || item.page > pdfDoc.getPageCount()) continue;
-
         const page = pdfDoc.getPage(item.page - 1);
         const { width: pageWidth, height: pageHeight } = page.getSize();
         
@@ -120,9 +116,9 @@ export const EraseEditEditor = ({ file }: EraseEditEditorProps) => {
         if (item.type === 'whiteout') {
           page.drawRectangle({ x: itemX, y: pageHeight - itemY_fromTop - itemHeight, width: itemWidth, height: itemHeight, color: rgb(1, 1, 1) });
         } else if (item.type === 'text' && item.text && item.fontSize && item.color) {
-          const textColor = { r: parseInt(item.color.slice(1, 3), 16) / 255, g: parseInt(item.color.slice(3, 5), 16) / 255, b: parseInt(item.color.slice(5, 7), 16) / 255 };
+          const textColor = rgb(parseInt(item.color.slice(1, 3), 16) / 255, parseInt(item.color.slice(3, 5), 16) / 255, parseInt(item.color.slice(5, 7), 16) / 255);
           const scaledFontSize = item.fontSize * scale;
-          const textHeight = helveticaFont.getAscentAtSize(scaledFontSize);
+          const textHeight = helveticaFont.heightAtSize(scaledFontSize);
 
           page.drawText(item.text, {
             x: itemX, y: pageHeight - itemY_fromTop - textHeight,
@@ -133,7 +129,12 @@ export const EraseEditEditor = ({ file }: EraseEditEditorProps) => {
         }
       }
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes.buffer], { type: 'application/pdf' });
+      
+      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      uint8Array.set(pdfBytes);
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (error) {
@@ -150,7 +151,10 @@ export const EraseEditEditor = ({ file }: EraseEditEditorProps) => {
     return (
         <div className="mt-8 text-center p-6 bg-green-50 border-green-200 rounded-lg">
             <h3 className="text-2xl font-semibold text-green-800 mb-4">Your Edited PDF is Ready!</h3>
-            <a href={outputPdfUrl} download={`edited-${file?.name}`} className="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700">Download PDF</a>
+             <div className="flex justify-center gap-4">
+                <a href={outputPdfUrl} download={`edited-${file?.name}`} className="inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700">Download PDF</a>
+                <Button onClick={onBack} variant="outline">Edit Another File</Button>
+            </div>
         </div>
     )
   }
@@ -220,5 +224,5 @@ export const EraseEditEditor = ({ file }: EraseEditEditorProps) => {
             </div>
         </div>
     </div>
-  )
-};
+  );
+}

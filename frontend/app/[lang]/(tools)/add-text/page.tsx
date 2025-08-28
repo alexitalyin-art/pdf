@@ -8,8 +8,6 @@ import { UploadCloud, Loader2, Save, Move, XCircle, Type, RotateCcw } from 'luci
 import dynamic from 'next/dynamic';
 import { Rnd } from 'react-rnd';
 
-// --- THIS IS THE FIX ---
-// We are now loading the viewer dynamically and disabling Server-Side Rendering (SSR) for it.
 const PDFCarouselViewer = dynamic(() => import('@/components/PDFCarouselViewer').then(mod => mod.PDFCarouselViewer), {
   ssr: false,
   loading: () => <div className="text-center py-20"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Viewer...</p></div>,
@@ -77,7 +75,6 @@ export default function AddTextPage() {
       const existingPdfBytes = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      const viewerWidth = viewerContainerRef.current?.clientWidth || 600;
 
       for (const item of placedTexts) {
         const page = pdfDoc.getPage(item.page - 1);
@@ -87,7 +84,10 @@ export default function AddTextPage() {
         const scale = pageWidth / pagePreviewInViewer.getViewport({scale:1.0}).width;
         
         const scaledFontSize = item.fontSize * scale;
-        const textHeight = helveticaFont.getAscentAtSize(scaledFontSize);
+        
+        // --- THIS IS THE DEFINITIVE FIX ---
+        // The correct function is `heightAtSize`. This calculates the full height of the text.
+        const textHeight = helveticaFont.heightAtSize(scaledFontSize);
         const y_coordinate = pageHeight - (item.y * scale) - textHeight;
 
         page.drawText(item.text, {
@@ -102,7 +102,13 @@ export default function AddTextPage() {
       }
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes.buffer], { type: 'application/pdf' });
+      
+      // The robust, multi-line fix for saving the file
+      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      uint8Array.set(pdfBytes);
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (error) {

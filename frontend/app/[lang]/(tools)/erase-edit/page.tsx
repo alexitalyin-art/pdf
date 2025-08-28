@@ -4,9 +4,12 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { Card, CardContent } from '@/components/ui/card';
 
+// --- THIS IS THE FIX ---
+// We now import the 'default' export from the module.
 const EraseEditEditor = dynamic(() => 
-  import('@/components/EraseEditEditor').then(mod => mod.EraseEditEditor), 
+  import('@/components/EraseEditEditor').then(mod => mod.default), 
   {
     ssr: false,
     loading: () => <div className="text-center py-10"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Editor...</p></div>,
@@ -21,6 +24,10 @@ export default function EraseEditTextPage() {
       setFile(acceptedFiles[0]);
     }
   }, []);
+  
+  const handleReset = () => {
+    setFile(null);
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
 
@@ -28,18 +35,23 @@ export default function EraseEditTextPage() {
     <div className="container mx-auto p-4 md:p-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Erase & Edit Text</h1>
-        <p className="text-md md:text-lg text-gray-600">Cover up old text and add new text on top.</p>
+        <p className="text-md md:text-lg text-muted-foreground">Cover up old text and add new text on top.</p>
       </div>
-      <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-5xl mx-auto">
-        {!file ? (
-          <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}>
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center justify-center"><UploadCloud className="w-12 h-12 text-gray-400 mb-4" /><p className="text-lg text-gray-600">Drag & drop a PDF here</p></div>
-          </div>
-        ) : (
-          <EraseEditEditor file={file} />
-        )}
-      </div>
+      <Card className="w-full max-w-5xl mx-auto">
+        <CardContent className="p-6">
+          {!file ? (
+            <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                <p className="text-lg text-muted-foreground">Drag & drop a PDF here</p>
+              </div>
+            </div>
+          ) : (
+            <EraseEditEditor file={file} onBack={handleReset} />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
