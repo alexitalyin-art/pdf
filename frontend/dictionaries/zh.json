@@ -1,0 +1,57 @@
+{
+  "homepage": {
+    "title": "Zero-Cost PDF Tools",
+    "subtitle": "All the tools you need to work with PDFs, 100% free and secure."
+  },
+  "merge_pdf": {
+    "meta_title": "Merge PDF | Combine Multiple PDFs into One for Free",
+    "meta_description": "Easily merge multiple PDF files into a single, organized document online. Free, secure, and works in your browser. No file uploads required.",
+    "title": "Merge PDF files",
+    "subtitle": "Combine multiple PDFs into a single document.",
+    "dropzone_text": "Drag & drop files here, or click to select",
+    "files_to_merge": "Files to Merge:",
+    "add_more_files": "Add more files",
+    "merge_button": "Merge PDFs",
+    "merging": "Merging...",
+    "success_message": "Your PDF is Ready!",
+    "download_button": "Download Merged PDF",
+    "alert_at_least_two": "Please select at least two PDF files.",
+    "alert_error_merging": "An error occurred while merging the PDFs."
+  },
+  "split_pdf": {
+      "meta_title": "免费在线拆分PDF | 提取页面并安全保存",
+      "meta_description": "快速免费在线拆分PDF文件。提取特定页面或范围，并立即生成新文档。安全、快速、无需安装的PDF工具。",
+      "title": "在线拆分PDF文件",
+      "subtitle": "立即提取并保存PDF页面 – 免费且安全。",
+      "dropzone_text": "拖放PDF到此处，或点击上传文件",
+      "label_pages": "要提取的页面",
+      "placeholder_pages": "示例：1-3, 5, 8-10",
+      "help_text": "输入页面号码或范围，用逗号分隔。",
+      "button_split": "立即拆分我的PDF",
+      "processing": "正在安全拆分PDF...",
+      "success_message": "您的PDF已成功拆分！",
+      "download_button": "下载拆分后的PDF",
+      "total_pages": "总页数"
+  
+  },
+  "rotate_pdf": {
+    "meta_title": "Rotate PDF | Rotate PDF Pages Online for Free",
+    "meta_description": "Easily rotate individual pages in your PDF file. Rotate left or right and get a live preview before downloading. Secure and free.",
+    "title": "Rotate PDF Pages",
+    "subtitle": "Review and rotate individual pages.",
+    "button_rotate_cw": "Rotate Clockwise",
+    "button_rotate_ccw": "Rotate Counter-Clockwise",
+    "button_apply": "Apply Changes & Download"
+  },
+  "unlock_pdf": {
+    "meta_title": "Unlock PDF | Free Online PDF Password Remover",
+    "meta_description": "Easily remove the password from a protected PDF file online. If you know the password, our free tool can create an unlocked version in seconds. Secure and browser-based.",
+    "title": "Unlock PDF",
+    "subtitle": "Remove the password from your PDF file (password required).",
+    "label_password": "PDF Password",
+    "placeholder_password": "Enter current password",
+    "button_unlock": "Unlock PDF",
+    "processing": "Unlocking...",
+    "error_message": "Incorrect password or corrupted file. Please try again."
+  }
+}

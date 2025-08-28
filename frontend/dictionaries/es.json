@@ -1,0 +1,56 @@
+{
+  "homepage": {
+    "title": "Herramientas PDF Sin Costo",
+    "subtitle": "Todas las herramientas que necesitas para trabajar con PDFs, 100% gratis y seguro."
+  },
+  "merge_pdf": {
+    "meta_title": "Unir PDF | Combina Varios PDFs en Uno Gratis",
+    "meta_description": "Une fácilmente varios archivos PDF en un único documento organizado en línea. Gratis, seguro y funciona en tu navegador. No se requiere subir archivos.",
+    "title": "Unir archivos PDF",
+    "subtitle": "Combina múltiples archivos PDF en un solo documento.",
+    "dropzone_text": "Arrastra y suelta los archivos aquí, o haz clic para seleccionar",
+    "files_to_merge": "Archivos para combinar:",
+    "add_more_files": "Añadir más archivos",
+    "merge_button": "Unir PDF",
+    "merging": "Uniendo...",
+    "success_message": "¡Tu PDF está listo!",
+    "download_button": "Descargar PDF Unido",
+    "alert_at_least_two": "Por favor, selecciona al menos dos archivos PDF.",
+    "alert_error_merging": "Ocurrió un error al unir los PDF."
+  },
+  "split_pdf": {
+      "meta_title": "Dividir PDF gratis online | Extraer páginas y guardar seguro",
+      "meta_description": "Divide archivos PDF gratis en línea en segundos. Extrae páginas o rangos de cualquier PDF y guarda un nuevo documento. Rápido, seguro y basado en navegador.",
+      "title": "Dividir PDF en línea",
+      "subtitle": "Extrae y guarda páginas de tu PDF al instante – gratis y seguro.",
+      "dropzone_text": "Arrastra y suelta tu PDF aquí, o haz clic para subir",
+      "label_pages": "Páginas a extraer",
+      "placeholder_pages": "Ejemplo: 1-3, 5, 8-10",
+      "help_text": "Escribe números o rangos de páginas separados por comas.",
+      "button_split": "Dividir mi PDF ahora",
+      "processing": "Dividiendo tu PDF de forma segura...",
+      "success_message": "¡Tu PDF se ha dividido con éxito!",
+      "download_button": "Descargar PDF dividido",
+      "total_pages": "páginas en total"
+  },
+  "rotate_pdf": {
+    "meta_title": "Girar PDF | Gira Páginas de PDF en Línea Gratis",
+    "meta_description": "Gira fácilmente páginas individuales en tu archivo PDF. Gira a la izquierda o derecha y obtén una vista previa en vivo antes de descargar. Seguro y gratis.",
+    "title": "Girar Páginas PDF",
+    "subtitle": "Revisa y gira páginas individuales.",
+    "button_rotate_cw": "Girar a la derecha",
+    "button_rotate_ccw": "Girar a la izquierda",
+    "button_apply": "Aplicar Cambios y Descargar"
+  },
+  "unlock_pdf": {
+    "meta_title": "Desbloquear PDF | Eliminador de Contraseñas de PDF en Línea Gratis",
+    "meta_description": "Elimina fácilmente la contraseña de un archivo PDF protegido en línea. Si conoces la contraseña, nuestra herramienta gratuita puede crear una versión desbloqueada en segundos.",
+    "title": "Desbloquear PDF",
+    "subtitle": "Elimina la contraseña de tu archivo PDF (se requiere contraseña).",
+    "label_password": "Contraseña del PDF",
+    "placeholder_password": "Introduce la contraseña actual",
+    "button_unlock": "Desbloquear PDF",
+    "processing": "Desbloqueando...",
+    "error_message": "Contraseña incorrecta o archivo dañado. Por favor, inténtalo de nuevo."
+  }
+}

@@ -1,0 +1,46 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { UploadCloud, Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the entire editor to prevent SSR errors
+const CropEditor = dynamic(() => 
+  import('@/components/CropEditor').then(mod => mod.CropEditor), 
+  {
+    ssr: false,
+    loading: () => <div className="text-center py-10"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Editor...</p></div>,
+  }
+);
+
+export default function CropPage() {
+  const [file, setFile] = useState<File | null>(null);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      setFile(acceptedFiles[0]);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
+
+  return (
+    <div className="container mx-auto p-4 md:p-8">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">Crop PDF</h1>
+        <p className="text-md md:text-lg text-gray-600">Navigate pages and draw a unique crop box for each one.</p>
+      </div>
+      <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-4xl mx-auto">
+        {!file ? (
+          <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}>
+            <input {...getInputProps()} />
+            <div className="flex flex-col items-center justify-center"><UploadCloud className="w-12 h-12 text-gray-400 mb-4" /><p className="text-lg text-gray-600">Drag & drop a PDF here</p></div>
+          </div>
+        ) : (
+          <CropEditor file={file} onBack={() => setFile(null)} />
+        )}
+      </div>
+    </div>
+  );
+}
