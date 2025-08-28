@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import { type PDFDocumentProxy } from 'pdfjs-dist';
 import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -10,6 +11,8 @@ interface Watermark {
   text: string;
   fontSize: number;
   opacity: number;
+  fontFamily: string;
+  style: 'single' | 'tiled';
 }
 interface PageNumberOptions {
   fontSize: number;
@@ -21,7 +24,7 @@ interface PDFCarouselViewerProps {
   rotation?: number;
   currentPage: number;
   onPageChange: (page: number) => void;
-  onPdfLoad: (pdf: pdfjsLib.PDFDocumentProxy) => void;
+  onPdfLoad: (pdf: PDFDocumentProxy) => void;
   watermark?: Watermark;
   pageNumberOptions?: PageNumberOptions;
 }
@@ -29,7 +32,7 @@ interface PDFCarouselViewerProps {
 export const PDFCarouselViewer = ({ file, rotation = 0, currentPage, onPageChange, onPdfLoad, watermark, pageNumberOptions }: PDFCarouselViewerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pdf, setPdf] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [viewportTrigger, setViewportTrigger] = useState(0);
 
@@ -52,46 +55,52 @@ export const PDFCarouselViewer = ({ file, rotation = 0, currentPage, onPageChang
 
   useEffect(() => {
     if (!pdf || isLoading) return;
-    
     let renderTask: pdfjsLib.RenderTask | undefined;
-
     const render = async () => {
       try {
         const page = await pdf.getPage(currentPage);
         const canvas = canvasRef.current;
         const container = containerRef.current;
         if (!canvas || !container || container.clientWidth === 0) return;
-
         const viewport = page.getViewport({ scale: container.clientWidth / page.getViewport({ scale: 1.0 }).width });
         const context = canvas.getContext('2d');
         if (!context) return;
-        
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-
         renderTask = page.render({ canvasContext: context, viewport });
         await renderTask.promise;
 
         if (watermark && watermark.text) {
-          context.font = `${watermark.fontSize * viewport.scale}px Helvetica`;
+          context.font = `${watermark.fontSize * viewport.scale}px ${watermark.fontFamily}`;
           context.fillStyle = `rgba(0, 0, 0, ${watermark.opacity})`;
           context.textAlign = 'center';
           context.textBaseline = 'middle';
           context.save();
-          context.translate(canvas.width / 2, canvas.height / 2);
-          context.rotate(-Math.PI / 4);
-          context.fillText(watermark.text, 0, 0);
+          
+          if (watermark.style === 'tiled') {
+            const gap = 150 * viewport.scale;
+            for (let y = gap / 2; y < canvas.height; y += gap) {
+              for (let x = gap / 2; x < canvas.width; x += gap) {
+                context.save();
+                context.translate(x, y);
+                context.rotate(-Math.PI / 4);
+                context.fillText(watermark.text, 0, 0);
+                context.restore();
+              }
+            }
+          } else {
+            context.translate(canvas.width / 2, canvas.height / 2);
+            context.rotate(-Math.PI / 4);
+            context.fillText(watermark.text, 0, 0);
+          }
           context.restore();
         }
-
         if (pageNumberOptions) {
             const { fontSize, position, startNumber } = pageNumberOptions;
             const margin = 20 * viewport.scale;
             const text = `${currentPage + startNumber - 1}`;
-            
             context.font = `${fontSize * viewport.scale}px Helvetica`;
             context.fillStyle = 'rgba(0, 0, 0, 1)';
-            
             let x=0, y=0;
             switch (position) {
                 case 'top-left': x = margin; y = margin; context.textAlign = 'left'; context.textBaseline = 'top'; break;
@@ -103,15 +112,12 @@ export const PDFCarouselViewer = ({ file, rotation = 0, currentPage, onPageChang
             }
             context.fillText(text, x, y);
         }
-
       } catch (error: any) {
         if (error.name !== 'RenderingCancelledException') { console.error("Render error:", error); }
       }
     };
     render();
     return () => { renderTask?.cancel(); };
-    // --- THIS IS THE FIX ---
-    // We add watermark and pageNumberOptions here so the preview re-renders when they change.
   }, [pdf, currentPage, isLoading, viewportTrigger, watermark, pageNumberOptions]);
 
   useEffect(() => {

@@ -1,47 +1,186 @@
-import type { Metadata } from 'next';
-import type { Locale } from '@/i18n-config';
-import { getDictionary } from '@/get-dictionary';
-import { Watermarker } from '@/components/Watermarker';
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
+'use client';
 
-export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
-  const dictionary = await getDictionary(lang);
-  // Assuming you will add 'add_watermark' to your dictionaries
-  const t = dictionary.add_watermark || {};
-  return {
-    title: t.meta_title || 'Add Watermark to PDF | Free Online Watermarking Tool',
-    description: t.meta_description || 'Easily add a text watermark to your PDF documents. Customize text, font size, and opacity. Secure and free to use in your browser.',
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
+import { UploadCloud, Loader2, Droplet } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const PDFCarouselViewer = dynamic(() => import('@/components/PDFCarouselViewer').then(mod => mod.PDFCarouselViewer), {
+  ssr: false,
+  loading: () => <div className="text-center py-20"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Viewer...</p></div>,
+});
+
+const fontMap = {
+    'Helvetica': { libFont: StandardFonts.Helvetica, cssFont: 'Helvetica, sans-serif' },
+    'Times New Roman': { libFont: StandardFonts.TimesRoman, cssFont: 'Times New Roman, serif' },
+    'Courier': { libFont: StandardFonts.Courier, cssFont: 'Courier New, monospace' },
+    'Helvetica-Bold': { libFont: StandardFonts.HelveticaBold, cssFont: 'Helvetica, sans-serif' },
+};
+type FontKey = keyof typeof fontMap;
+type StyleKey = 'single' | 'tiled';
+
+export default function AddWatermarkPage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
+  const [fontSize, setFontSize] = useState(50); // Smaller default for tiling
+  const [opacity, setOpacity] = useState(0.25); // Lower default for tiling
+  const [font, setFont] = useState<FontKey>('Helvetica');
+  const [style, setStyle] = useState<StyleKey>('tiled'); // NEW state for style
+  const [error, setError] = useState<string | null>(null);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      setFile(acceptedFiles[0]);
+      setOutputPdfUrl(null);
+      setError(null);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
+
+  const handleAddWatermark = async () => {
+    if (!file) return;
+    setIsProcessing(true);
+    setOutputPdfUrl(null);
+    setError(null);
+    try {
+      const existingPdfBytes = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const selectedFont = await pdfDoc.embedFont(fontMap[font].libFont);
+      const pages = pdfDoc.getPages();
+      
+      for (const page of pages) {
+        const { width, height } = page.getSize();
+        
+        // --- NEW: Tiled vs Single Logic ---
+        if (style === 'tiled') {
+            const textWidth = selectedFont.widthOfTextAtSize(watermarkText, fontSize);
+            const gap = 150; // Gap between watermarks in PDF units
+            for (let y = 0; y < height + gap; y += gap) {
+                for (let x = 0; x < width + gap; x += gap) {
+                    page.drawText(watermarkText, {
+                        x: x, y: y,
+                        font: selectedFont, size: fontSize,
+                        color: rgb(0, 0, 0), opacity: opacity,
+                        rotate: degrees(-45),
+                    });
+                }
+            }
+        } else { // Single style
+            const textWidth = selectedFont.widthOfTextAtSize(watermarkText, fontSize * 2); // Larger for single
+            const textHeight = selectedFont.heightAtSize(fontSize * 2);
+            page.drawText(watermarkText, {
+                x: width / 2 - textWidth / 2,
+                y: height / 2 - textHeight / 2,
+                font: selectedFont, size: fontSize * 2,
+                color: rgb(0, 0, 0), opacity: opacity,
+                rotate: degrees(-45),
+            });
+        }
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      uint8Array.set(pdfBytes);
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setOutputPdfUrl(url);
+    } catch (e) {
+      console.error('Error adding watermark:', e);
+      setError('An error occurred.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
-}
-
-export default async function AddWatermarkPage({ params: { lang } }: { params: { lang: Locale } }) {
-  const dictionary = await getDictionary(lang);
-  // Assuming you will add 'add_watermark' to your dictionaries
-  const t = dictionary.add_watermark || {};
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold">{t.title || 'Add Watermark to PDF'}</h1>
-        <p className="text-lg text-muted-foreground mt-2">{t.subtitle || 'Apply a text watermark to every page of your PDF.'}</p>
-      </div>
-
-      <Suspense fallback={<div className="flex justify-center"><Loader2 className="w-12 h-12 animate-spin" /></div>}>
-        <Watermarker dictionary={t as any} />
-      </Suspense>
-
-      {/* You can add translated SEO content to your dictionary files later */}
-      <div className="prose dark:prose-invert max-w-4xl mx-auto mt-12">
-        <h2>How to Add a Watermark to a PDF</h2>
-        <ol>
-          <li>Drag and drop your PDF file into the upload area above.</li>
-          <li>Enter the text you want to use as your watermark.</li>
-          <li>Adjust the font size and opacity using the sliders.</li>
-          <li>Click the "Add Watermark & Download" button.</li>
-          <li>Your new, watermarked PDF will be generated for you to download instantly.</li>
-        </ol>
-      </div>
+      <Card className="max-w-5xl mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl md:text-4xl font-bold">Add Watermark</CardTitle>
+          <CardDescription className="text-md md:text-lg text-muted-foreground">Add a text watermark with a live preview.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!file ? (
+            <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center justify-center space-y-4"><UploadCloud className="w-12 h-12 text-muted-foreground" /><p className="text-lg text-muted-foreground">Drag & drop a PDF here</p></div>
+            </div>
+          ) : (
+            <div className="flex flex-col lg:flex-row gap-8">
+              <div className="flex-grow lg:w-2/3">
+                <PDFCarouselViewer 
+                  file={file} 
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  onPdfLoad={(pdf: PDFDocumentProxy) => setTotalPages(pdf.numPages)}
+                  watermark={{ text: watermarkText, fontSize: style === 'single' ? fontSize * 2 : fontSize, opacity, fontFamily: fontMap[font].cssFont, style }}
+                />
+              </div>
+              <div className="lg:w-1/3 flex flex-col justify-center space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="watermarkText">Watermark Text</Label>
+                  <Input type="text" id="watermarkText" value={watermarkText} onChange={e => setWatermarkText(e.target.value)} />
+                </div>
+                {/* --- NEW: Style Dropdown --- */}
+                <div className="space-y-2">
+                    <Label htmlFor="style">Style</Label>
+                    <Select value={style} onValueChange={(value: StyleKey) => setStyle(value)}>
+                        <SelectTrigger><SelectValue placeholder="Select style" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="tiled">Tiled</SelectItem>
+                            <SelectItem value="single">Single</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="fontStyle">Font Style</Label>
+                    <Select value={font} onValueChange={(value: FontKey) => setFont(value)}>
+                        <SelectTrigger><SelectValue placeholder="Select font" /></SelectTrigger>
+                        <SelectContent>
+                            {Object.keys(fontMap).map(fontName => (
+                                <SelectItem key={fontName} value={fontName}>{fontName}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fontSize">Font Size ({fontSize}pt)</Label>
+                  <Input type="range" id="fontSize" min="10" max="100" value={fontSize} onChange={e => setFontSize(parseInt(e.target.value))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="opacity">Opacity ({Math.round(opacity * 100)}%)</Label>
+                  <Input type="range" id="opacity" min="0.1" max="1" step="0.05" value={opacity} onChange={e => setOpacity(parseFloat(e.target.value))} />
+                </div>
+                <Button onClick={handleAddWatermark} disabled={isProcessing} className="w-full text-lg py-6">
+                  <Droplet className="mr-2 h-5 w-5" />
+                  {isProcessing ? 'Processing...' : 'Add Watermark & Download'}
+                </Button>
+              </div>
+            </div>
+          )}
+          {error && <div className="mt-4 text-center p-3 bg-destructive text-destructive-foreground rounded-lg"><p>{error}</p></div>}
+          {outputPdfUrl && (
+            <div className="mt-6 text-center p-6 bg-green-50 dark:bg-green-900/20 border rounded-lg">
+              <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">Watermark Added!</h3>
+              <Button asChild size="lg"><a href={outputPdfUrl} download={`watermarked-${file?.name}`}>Download Watermarked PDF</a></Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

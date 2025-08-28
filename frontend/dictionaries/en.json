@@ -53,5 +53,31 @@
     "button_unlock": "Unlock PDF",
     "processing": "Unlocking...",
     "error_message": "Incorrect password or corrupted file. Please try again."
+
+    
+  },
+  "add_watermark": {
+    "meta_title": "Add Watermark to PDF | Free Online Watermarking Tool",
+    "meta_description": "Easily add a text watermark to your PDF documents. Customize text, font size, and opacity. Secure and free to use in your browser.",
+    "title": "Add Watermark to PDF",
+    "subtitle": "Apply a text watermark to every page of your PDF.",
+    "how_to_title": "How to Add a Watermark to a PDF",
+    "how_to_step_1": "Drag and drop your PDF file into the upload area.",
+    "how_to_step_2": "Enter the text for your watermark in the input field.",
+    "how_to_step_3": "Adjust the font size and opacity using the sliders to see a live preview.",
+    "how_to_step_4": "Click 'Add Watermark & Download' to process and save your new PDF."
+  },
+  "add_text": {
+    "meta_title": "Add Text to PDF | Free Online PDF Text Editor",
+    "meta_description": "Add new text boxes to any page of your PDF document. Drag, resize, and type your text directly on the preview. 100% free and secure.",
+    "title": "Add Text to PDF",
+    "subtitle": "Add, edit, and place new text boxes on your document.",
+    "how_to_title": "How to Add Text to a PDF",
+    "how_to_step_1": "Upload your PDF document.",
+    "how_to_step_2": "Click the 'Add Text Box' button. A new box will appear on the current page.",
+    "how_to_step_3": "Click inside the box to type your new text.",
+    "how_to_step_4": "Drag the box to move it or drag the corners to resize it.",
+    "how_to_step_5": "Click 'Apply Text & Download' to save your changes."
   }
+  
 }

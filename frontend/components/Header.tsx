@@ -8,16 +8,8 @@ export const Header = () => {
         <div className="mr-4 flex">
             <Link href="/" className="mr-6 flex items-center space-x-2">
                 <Layers3 className="h-6 w-6 text-primary" />
-                <span className="font-bold sm:inline-block">
-                PDF Tools
-                </span>
+                <span className="font-bold sm:inline-block">PDF Tools</span>
             </Link>
-            <nav className="flex items-center space-x-6 text-sm font-medium">
-                <Link href="/" className="transition-colors hover:text-foreground/80 text-foreground">Tools</Link>
-                <Link href="/" className="transition-colors hover:text-foreground/80 text-foreground/60">About</Link>
-                <Link href="/" className="transition-colors hover:text-foreground/80 text-foreground/60">Blog</Link>
-                <Link href="/" className="transition-colors hover:text-foreground/80 text-foreground/60">Contact</Link>
-            </nav>
         </div>
       </div>
     </header>
