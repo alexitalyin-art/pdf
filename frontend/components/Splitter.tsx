@@ -86,7 +86,6 @@ export const Splitter = ({ dictionary }: { dictionary: SplitToolDict }) => {
       copiedPages.forEach(page => newDoc.addPage(page));
       
       const pdfBytes = await newDoc.save();
-      
       const arrayBuffer = new ArrayBuffer(pdfBytes.length);
       const uint8Array = new Uint8Array(arrayBuffer);
       uint8Array.set(pdfBytes);
@@ -105,7 +104,7 @@ export const Splitter = ({ dictionary }: { dictionary: SplitToolDict }) => {
     <Card className="w-full max-w-5xl mx-auto">
         <CardContent className="p-6">
         {!file ? (
-          <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer text-center ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
+          <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer text-center transition-colors ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
             <input {...getInputProps()} />
             <div className="flex flex-col items-center justify-center space-y-4">
               <UploadCloud className="w-12 h-12 text-muted-foreground" />

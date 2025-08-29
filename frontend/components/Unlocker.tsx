@@ -9,7 +9,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export const Unlocker = () => {
+interface UnlockToolDict {
+    dropzone_text: string;
+    label_password: string;
+    placeholder_password: string;
+    button_unlock: string;
+    processing: string;
+    success_message: string;
+    download_button: string;
+    error_message: string;
+}
+
+export const Unlocker = ({ dictionary }: { dictionary: UnlockToolDict }) => {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -40,12 +51,9 @@ export const Unlocker = () => {
     setError(null);
     try {
       const existingPdfBytes = await file.arrayBuffer();
-      
-      // --- THIS IS THE FIX ---
-      // We are telling TypeScript to ignore the type error on this specific line.
-      // @ts-ignore
+      // @ts-ignore - pdf-lib types are not perfectly aligned with all TypeScript versions
       const pdfDoc = await PDFDocument.load(existingPdfBytes, { password: password });
-
+      
       const pdfBytes = await pdfDoc.save();
       
       const arrayBuffer = new ArrayBuffer(pdfBytes.length);
@@ -56,8 +64,7 @@ export const Unlocker = () => {
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (e) {
-      console.error('Error unlocking PDF:', e);
-      setError('Incorrect password or corrupted file. Please try again.');
+      setError(dictionary.error_message);
     } finally {
       setIsProcessing(false);
     }
@@ -71,7 +78,7 @@ export const Unlocker = () => {
             <input {...getInputProps()} />
             <div className="flex flex-col items-center justify-center space-y-4">
               <UploadCloud className="w-12 h-12 text-muted-foreground" />
-              <p className="text-lg text-muted-foreground">Drag & drop a protected PDF here, or click to select</p>
+              <p className="text-lg text-muted-foreground">{dictionary.dropzone_text}</p>
             </div>
           </div>
         ) : (
@@ -81,34 +88,32 @@ export const Unlocker = () => {
               <Button variant="ghost" size="sm" onClick={() => setFile(null)}>Change File</Button>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">PDF Password</Label>
+              <Label htmlFor="password">{dictionary.label_password}</Label>
               <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter current password"
+                  placeholder={dictionary.placeholder_password}
               />
             </div>
             <Button onClick={handleUnlock} disabled={isProcessing} className="w-full text-lg py-6">
               <UnlockIcon className="mr-2 h-5 w-5" />
-              {isProcessing ? 'Unlocking...' : 'Unlock PDF'}
+              {isProcessing ? dictionary.processing : dictionary.button_unlock}
             </Button>
           </div>
         )}
-
         {error && (
           <div className="mt-4 text-center p-3 bg-destructive text-destructive-foreground rounded-lg">
               <p>{error}</p>
           </div>
         )}
-
         {outputPdfUrl && (
-          <div className="mt-6 text-center p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 border rounded-lg">
-            <h3 className="text-2xl font-semibold text-blue-800 dark:text-blue-300 mb-4">PDF Unlocked!</h3>
+          <div className="mt-6 text-center p-6 bg-green-50 dark:bg-green-900/20 border rounded-lg">
+            <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">{dictionary.success_message}</h3>
             <Button asChild size="lg">
               <a href={outputPdfUrl} download={`unlocked-${file?.name || 'document'}.pdf`}>
-                Download Unlocked PDF
+                {dictionary.download_button}
               </a>
             </Button>
           </div>

@@ -7,7 +7,6 @@ import { FileText, X, PlusCircle, UploadCloud } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
-// This is a simplified dictionary type for the component
 interface MergeToolDict {
     add_more_files: string;
     merge_button: string;
@@ -49,13 +48,10 @@ export const Merger = ({ dictionary }: { dictionary: MergeToolDict }) => {
         copiedPages.forEach((page) => mergedPdf.addPage(page));
       }
       const mergedPdfBytes = await mergedPdf.save();
-      
-      // The robust, multi-line fix for saving the file
       const arrayBuffer = new ArrayBuffer(mergedPdfBytes.length);
       const uint8Array = new Uint8Array(arrayBuffer);
       uint8Array.set(mergedPdfBytes);
       const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-
       const url = URL.createObjectURL(blob);
       setMergedPdfUrl(url);
     } catch (error) {

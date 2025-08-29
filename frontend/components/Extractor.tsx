@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PDFDocument } from 'pdf-lib';
-import { UploadCloud, FileText, Trash2, Loader2 } from 'lucide-react';
+import { UploadCloud, FileText, FileUp, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,16 +13,16 @@ const PDFPreviewer = dynamic(() => import('@/components/PDFPreviewer').then(mod 
   loading: () => <div className="text-center py-10"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Previews...</p></div>,
 });
 
-interface RemoveToolDict {
+interface ExtractToolDict {
     dropzone_text: string;
     instructions: string;
-    button_remove: string;
+    button_extract: string;
     processing: string;
     success_message: string;
     download_button: string;
 }
 
-export const Remover = ({ dictionary }: { dictionary: RemoveToolDict }) => {
+export const Extractor = ({ dictionary }: { dictionary: ExtractToolDict }) => {
   const [file, setFile] = useState<File | null>(null);
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
@@ -54,9 +54,9 @@ export const Remover = ({ dictionary }: { dictionary: RemoveToolDict }) => {
     });
   };
 
-  const handleRemove = async () => {
+  const handleExtract = async () => {
     if (!file || selectedPages.size === 0) {
-      alert('Please select at least one page to remove.');
+      alert('Please select at least one page to extract.');
       return;
     }
     setIsProcessing(true);
@@ -64,26 +64,13 @@ export const Remover = ({ dictionary }: { dictionary: RemoveToolDict }) => {
     try {
       const existingPdfBytes = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
-      const totalPages = pdfDoc.getPageCount();
-      
-      const pagesToKeepIndices = [];
-      for (let i = 0; i < totalPages; i++) {
-        if (!selectedPages.has(i + 1)) {
-          pagesToKeepIndices.push(i);
-        }
-      }
-
-      if (pagesToKeepIndices.length === 0) {
-        alert("You cannot remove all pages of the document.");
-        setIsProcessing(false);
-        return;
-      }
+      const pageIndicesToKeep = Array.from(selectedPages).map(n => n - 1).sort((a, b) => a - b);
 
       const newDoc = await PDFDocument.create();
-      const copiedPages = await newDoc.copyPages(pdfDoc, pagesToKeepIndices);
+      const copiedPages = await newDoc.copyPages(pdfDoc, pageIndicesToKeep);
       copiedPages.forEach(page => newDoc.addPage(page));
-      const pdfBytes = await newDoc.save();
       
+      const pdfBytes = await newDoc.save();
       const arrayBuffer = new ArrayBuffer(pdfBytes.length);
       const uint8Array = new Uint8Array(arrayBuffer);
       uint8Array.set(pdfBytes);
@@ -92,7 +79,7 @@ export const Remover = ({ dictionary }: { dictionary: RemoveToolDict }) => {
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (error) {
-      alert('An error occurred while removing pages from the PDF.');
+      alert('An error occurred while extracting pages.');
     } finally {
       setIsProcessing(false);
     }
@@ -124,13 +111,12 @@ export const Remover = ({ dictionary }: { dictionary: RemoveToolDict }) => {
             />
             <div className="flex justify-center mt-6">
               <Button
-                onClick={handleRemove}
+                onClick={handleExtract}
                 disabled={isProcessing || selectedPages.size === 0}
                 className="text-lg py-6"
-                variant="destructive"
               >
-                <Trash2 className="mr-2 h-5 w-5" />
-                {isProcessing ? dictionary.processing : dictionary.button_remove.replace('{count}', selectedPages.size.toString())}
+                <FileUp className="mr-2 h-5 w-5" />
+                {isProcessing ? dictionary.processing : dictionary.button_extract.replace('{count}', selectedPages.size.toString())}
               </Button>
             </div>
           </div>
@@ -139,7 +125,7 @@ export const Remover = ({ dictionary }: { dictionary: RemoveToolDict }) => {
           <div className="mt-6 text-center p-6 bg-green-50 dark:bg-green-900/20 border rounded-lg">
             <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">{dictionary.success_message}</h3>
             <Button asChild size="lg">
-              <a href={outputPdfUrl} download={`removed-${file?.name}`}>{dictionary.download_button}</a>
+              <a href={outputPdfUrl} download={`extracted-${file?.name}`}>{dictionary.download_button}</a>
             </Button>
           </div>
         )}

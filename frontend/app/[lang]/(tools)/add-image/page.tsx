@@ -1,55 +1,44 @@
-'use client';
+import { ImageAdder } from "@/components/ImageAdder";
+import type { Metadata } from 'next';
+import type { Locale } from '@/i18n-config';
+import { getDictionary } from '@/get-dictionary';
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 
-import { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { UploadCloud, Loader2 } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { Card, CardContent } from '@/components/ui/card';
+export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
+  const dictionary = await getDictionary(lang);
+  const t = dictionary.add_image;
+  return {
+    title: t.meta_title,
+    description: t.meta_description,
+  };
+}
 
-const ImageAdder = dynamic(() => 
-  import('@/components/ImageAdder').then(mod => mod.ImageAdder), 
-  {
-    ssr: false,
-    loading: () => <div className="text-center py-10"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Editor...</p></div>,
-  }
-);
-
-export default function AddImagePage() {
-  const [file, setFile] = useState<File | null>(null);
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
-    }
-  }, []);
-
-  const handleReset = () => {
-    setFile(null);
-  }
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
+export default async function AddImagePage({ params: { lang } }: { params: { lang: Locale } }) {
+  const dictionary = await getDictionary(lang);
+  const t = dictionary.add_image;
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Add Image to PDF</h1>
-        <p className="text-md md:text-lg text-muted-foreground">Upload and place images on your document.</p>
+        <h1 className="text-4xl font-bold">{t.h1}</h1>
+        <p className="text-lg text-muted-foreground mt-2">{t.subtitle}</p>
       </div>
-      <Card className="w-full max-w-5xl mx-auto">
-        <CardContent className="p-6">
-          {!file ? (
-            <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer text-center transition-colors ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
-              <input {...getInputProps()} />
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <UploadCloud className="w-12 h-12 text-muted-foreground" />
-                <p className="text-lg text-muted-foreground">Drag & drop a PDF here, or click to select</p>
-              </div>
-            </div>
-          ) : (
-            <ImageAdder file={file} onReset={handleReset} />
-          )}
-        </CardContent>
-      </Card>
+
+      <Suspense fallback={<div className="flex justify-center"><Loader2 className="w-12 h-12 animate-spin" /></div>}>
+        <ImageAdder dictionary={t as any} />
+      </Suspense>
+
+      <div className="prose dark:prose-invert max-w-4xl mx-auto mt-12">
+        <h2>{t.how_to_title}</h2>
+        <ol>
+          <li>{t.how_to_step_1}</li>
+          <li>{t.how_to_step_2}</li>
+          <li>{t.how_to_step_3}</li>
+          <li>{t.how_to_step_4}</li>
+          <li>{t.how_to_step_5}</li>
+        </ol>
+      </div>
     </div>
   );
 }

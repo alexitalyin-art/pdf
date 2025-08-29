@@ -1,45 +1,42 @@
-'use client';
+import { Cropper } from "@/components/Cropper";
+import type { Metadata } from 'next';
+import type { Locale } from '@/i18n-config';
+import { getDictionary } from '@/get-dictionary';
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 
-import { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { UploadCloud, Loader2 } from 'lucide-react';
-import dynamic from 'next/dynamic';
+export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
+  const dictionary = await getDictionary(lang);
+  const t = dictionary.crop_pdf;
+  return {
+    title: t.meta_title,
+    description: t.meta_description,
+  };
+}
 
-// Dynamically import the entire editor to prevent SSR errors
-const CropEditor = dynamic(() => 
-  import('@/components/CropEditor').then(mod => mod.CropEditor), 
-  {
-    ssr: false,
-    loading: () => <div className="text-center py-10"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Editor...</p></div>,
-  }
-);
-
-export default function CropPage() {
-  const [file, setFile] = useState<File | null>(null);
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
-    }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
+export default async function CropPage({ params: { lang } }: { params: { lang: Locale } }) {
+  const dictionary = await getDictionary(lang);
+  const t = dictionary.crop_pdf;
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Crop PDF</h1>
-        <p className="text-md md:text-lg text-gray-600">Navigate pages and draw a unique crop box for each one.</p>
+        <h1 className="text-4xl font-bold">{t.h1}</h1>
+        <p className="text-lg text-muted-foreground mt-2">{t.subtitle}</p>
       </div>
-      <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-4xl mx-auto">
-        {!file ? (
-          <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}>
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center justify-center"><UploadCloud className="w-12 h-12 text-gray-400 mb-4" /><p className="text-lg text-gray-600">Drag & drop a PDF here</p></div>
-          </div>
-        ) : (
-          <CropEditor file={file} onBack={() => setFile(null)} />
-        )}
+
+      <Suspense fallback={<div className="flex justify-center"><Loader2 className="w-12 h-12 animate-spin" /></div>}>
+        <Cropper dictionary={t as any} />
+      </Suspense>
+
+      <div className="prose dark:prose-invert max-w-4xl mx-auto mt-12">
+        <h2>{t.how_to_title}</h2>
+        <ol>
+          <li>{t.how_to_step_1}</li>
+          <li>{t.how_to_step_2}</li>
+          <li>{t.how_to_step_3}</li>
+          <li>{t.how_to_step_4}</li>
+        </ol>
       </div>
     </div>
   );

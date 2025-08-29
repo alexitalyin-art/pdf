@@ -6,16 +6,17 @@ import * as pdfjsLib from 'pdfjs-dist';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { Loader2, Save, XCircle, Edit, RotateCcw } from 'lucide-react';
+import { Loader2, Save, XCircle, Edit, RotateCcw, FileUp } from 'lucide-react';
 import { Rnd } from 'react-rnd';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const PDFCarouselViewer = dynamic(() => import('@/components/PDFCarouselViewer').then(mod => mod.PDFCarouselViewer), {
   ssr: false,
   loading: () => <div className="text-center py-20"><Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" /><p className="mt-4">Loading Viewer...</p></div>,
 });
-
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -32,6 +33,8 @@ interface PlacedItem {
   color?: string;
 }
 
+// --- THIS IS THE FIX ---
+// The component's props interface now correctly includes 'onBack'
 interface EraseEditEditorProps {
     file: File;
     onBack: () => void;
@@ -129,16 +132,13 @@ export default function EraseEditEditor({ file, onBack }: EraseEditEditorProps) 
         }
       }
       const pdfBytes = await pdfDoc.save();
-      
       const arrayBuffer = new ArrayBuffer(pdfBytes.length);
       const uint8Array = new Uint8Array(arrayBuffer);
       uint8Array.set(pdfBytes);
       const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-      
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (error) {
-      console.error('Error applying edits:', error);
       alert('An error occurred.');
     } finally {
       setIsProcessing(false);
@@ -198,29 +198,36 @@ export default function EraseEditEditor({ file, onBack }: EraseEditEditorProps) 
         </div>
         <div className="lg:w-1/3 flex flex-col items-center">
             <div className="w-full text-center">
-            <button onClick={startErasing} className="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 w-full flex items-center justify-center gap-2 mt-4">
+            <Button onClick={startErasing} className="w-full flex items-center justify-center gap-2">
                 <Edit /> Select Area to Erase/Edit
-            </button>
-                {isErasing && <button onClick={() => setIsErasing(false)} className="text-sm text-red-500 hover:underline mt-2">Cancel</button>}
+            </Button>
+                {isErasing && <Button onClick={() => setIsErasing(false)} variant="link" className="text-destructive mt-2">Cancel</Button>}
             </div>
             
             {selectedItem && selectedItem.type === 'text' && (
             <div className="w-full mt-6 p-4 border rounded-lg">
                 <h3 className="text-lg font-semibold mb-3 text-center">Text Options</h3>
                 <div className="mb-3">
-                    <label htmlFor="fontSize" className="block text-sm font-medium mb-1">Font Size ({selectedItem.fontSize}pt)</label>
-                    <input type="range" id="fontSize" min="8" max="72" value={selectedItem.fontSize} onChange={e => updateItemProperty(selectedItemId!, { fontSize: parseInt(e.target.value) })} className="w-full" />
+                    <Label htmlFor="fontSize">Font Size ({selectedItem.fontSize}pt)</Label>
+                    <Input type="range" id="fontSize" min="8" max="72" value={selectedItem.fontSize} onChange={e => updateItemProperty(selectedItemId!, { fontSize: parseInt(e.target.value) })} className="w-full" />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="fontColor" className="block text-sm font-medium mb-1">Font Color</label>
-                    <input type="color" id="fontColor" value={selectedItem.color} onChange={e => updateItemProperty(selectedItemId!, { color: e.target.value })} className="w-full h-10 p-1 border border-gray-300 rounded-md" />
+                    <Label htmlFor="fontColor">Font Color</Label>
+                    <Input type="color" id="fontColor" value={selectedItem.color} onChange={e => updateItemProperty(selectedItemId!, { color: e.target.value })} className="w-full h-10 p-1" />
                 </div>
             </div>
             )}
 
-            <div className="w-full mt-auto pt-4">
-            <button onClick={handleReset} disabled={items.length === 0} className="bg-orange-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-orange-600 disabled:bg-gray-400 w-full flex items-center justify-center gap-2 mb-3"><RotateCcw /> Reset</button>
-            <button onClick={handleApplyEdits} disabled={isProcessing || items.length === 0} className="bg-purple-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 w-full flex items-center justify-center gap-2"><Save /> Apply Edits & Download</button>
+            <div className="w-full mt-auto pt-4 space-y-3">
+                <Button onClick={onBack} variant="outline" className="w-full flex items-center justify-center gap-2">
+                    <FileUp /> Change PDF
+                </Button>
+                <Button onClick={handleReset} disabled={items.length === 0} variant="destructive" className="w-full flex items-center justify-center gap-2">
+                    <RotateCcw /> Reset
+                </Button>
+                <Button onClick={handleApplyEdits} disabled={isProcessing || items.length === 0} className="w-full text-lg py-6">
+                    <Save /> Apply Edits & Download
+                </Button>
             </div>
         </div>
     </div>
