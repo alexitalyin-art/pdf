@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
-import { UploadCloud, Loader2, Droplet } from 'lucide-react';
+import { UploadCloud, Loader2, Droplet, FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ export default function AddWatermarkPage() {
   const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
   const [fontSize, setFontSize] = useState(50);
   const [opacity, setOpacity] = useState(0.25);
-  const [font, setFont] = useState<FontKey>('Helvetica');
+  const [font, setFont] = useState<FontKey>('Helvetica-Bold');
   const [style, setStyle] = useState<StyleKey>('tiled');
   const [error, setError] = useState<string | null>(null);
 
@@ -48,11 +48,7 @@ export default function AddWatermarkPage() {
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    multiple: false,
-    accept: { 'application/pdf': ['.pdf'] },
-  });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
 
   const handleAddWatermark = async () => {
     if (!file) return;
@@ -64,42 +60,41 @@ export default function AddWatermarkPage() {
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const selectedFont = await pdfDoc.embedFont(fontMap[font].libFont);
       const pages = pdfDoc.getPages();
-
+      
       for (const page of pages) {
         const { width, height } = page.getSize();
+        
         if (style === 'tiled') {
-          const gap = 150;
-          for (let y = 0; y < height + gap; y += gap) {
-            for (let x = 0; x < width + gap; x += gap) {
-              page.drawText(watermarkText, {
-                x: x,
-                y: y,
-                font: selectedFont,
-                size: fontSize,
-                color: rgb(0, 0, 0),
-                opacity: opacity,
-                rotate: degrees(-45),
-              });
+            const gap = 150;
+            for (let y = -gap; y < height + gap; y += gap) {
+                for (let x = -gap; x < width + gap; x += gap) {
+                    page.drawText(watermarkText, {
+                        x, y,
+                        font: selectedFont, size: fontSize,
+                        color: rgb(0, 0, 0), opacity: opacity,
+                        rotate: degrees(45),
+                    });
+                }
             }
-          }
         } else {
-          const largeFontSize = fontSize * 2;
-          const textWidth = selectedFont.widthOfTextAtSize(watermarkText, largeFontSize);
-          const textHeight = selectedFont.heightAtSize(largeFontSize);
-          page.drawText(watermarkText, {
-            x: width / 2 - textWidth / 2,
-            y: height / 2 - textHeight / 2,
-            font: selectedFont,
-            size: largeFontSize,
-            color: rgb(0, 0, 0),
-            opacity: opacity,
-            rotate: degrees(-45),
-          });
+            const largeFontSize = fontSize * 2.5;
+            const textWidth = selectedFont.widthOfTextAtSize(watermarkText, largeFontSize);
+            const textHeight = selectedFont.heightAtSize(largeFontSize);
+            page.drawText(watermarkText, {
+                x: width / 2 - textWidth / 2,
+                y: height / 2 - textHeight / 2,
+                font: selectedFont, size: largeFontSize,
+                color: rgb(0, 0, 0), opacity: opacity,
+                rotate: degrees(-45),
+            });
         }
       }
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      uint8Array.set(pdfBytes);
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (e) {
@@ -110,6 +105,12 @@ export default function AddWatermarkPage() {
     }
   };
 
+  const handleReset = () => {
+      setFile(null);
+      setOutputPdfUrl(null);
+      setError(null);
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-8">
       <Card className="max-w-5xl mx-auto">
@@ -119,10 +120,7 @@ export default function AddWatermarkPage() {
         </CardHeader>
         <CardContent>
           {!file ? (
-            <div
-              {...getRootProps()}
-              className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}
-            >
+            <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
               <input {...getInputProps()} />
               <div className="flex flex-col items-center justify-center space-y-4"><UploadCloud className="w-12 h-12 text-muted-foreground" /><p className="text-lg text-muted-foreground">Drag & drop a PDF here</p></div>
             </div>
@@ -134,10 +132,13 @@ export default function AddWatermarkPage() {
                   currentPage={currentPage}
                   onPageChange={setCurrentPage}
                   onPdfLoad={(pdf: PDFDocumentProxy) => setTotalPages(pdf.numPages)}
-                  watermark={{ text: watermarkText, fontSize: style === 'single' ? fontSize * 2 : fontSize, opacity, fontFamily: fontMap[font].cssFont, style }}
+                  watermark={{ text: watermarkText, fontSize: style === 'single' ? fontSize * 2.5 : fontSize, opacity, fontFamily: fontMap[font].cssFont, style }}
                 />
               </div>
               <div className="lg:w-1/3 flex flex-col space-y-4">
+                 <div className="p-3 bg-secondary rounded-md">
+                    <p className="font-medium text-secondary-foreground truncate">{file.name}</p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="watermarkText">Watermark Text</Label>
                   <Input type="text" id="watermarkText" value={watermarkText} onChange={e => setWatermarkText(e.target.value)} />
@@ -145,40 +146,20 @@ export default function AddWatermarkPage() {
                 <div className="space-y-2">
                     <Label htmlFor="style">Style</Label>
                     <Select value={style} onValueChange={(value: StyleKey) => setStyle(value)}>
-                        <SelectTrigger className="bg-gray-700 text-white border border-gray-700">
-                            <SelectValue placeholder="Select style" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-700 text-white border border-gray-700 shadow-lg rounded-md z-50">
-                            <SelectItem
-                              value="tiled"
-                              className="data-[highlighted]:bg-gray-600 data-[highlighted]:text-white focus:bg-gray-600 focus:text-white"
-                            >
-                              Tiled
-                            </SelectItem>
-                            <SelectItem
-                              value="single"
-                              className="data-[highlighted]:bg-gray-600 data-[highlighted]:text-white focus:bg-gray-600 focus:text-white"
-                            >
-                              Single
-                            </SelectItem>
+                        <SelectTrigger className="bg-background border"><SelectValue placeholder="Select style" /></SelectTrigger>
+                        <SelectContent className="bg-background border">
+                            <SelectItem value="tiled">Tiled</SelectItem>
+                            <SelectItem value="single">Single</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="fontStyle">Font Style</Label>
                     <Select value={font} onValueChange={(value: FontKey) => setFont(value)}>
-                        <SelectTrigger className="bg-gray-700 text-white border border-gray-700">
-                            <SelectValue placeholder="Select font" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-700 text-white border border-gray-700 shadow-lg rounded-md z-50">
+                        <SelectTrigger className="bg-background border"><SelectValue placeholder="Select font" /></SelectTrigger>
+                        <SelectContent className="bg-background border">
                             {Object.keys(fontMap).map(fontName => (
-                              <SelectItem
-                                key={fontName}
-                                value={fontName}
-                                className="data-[highlighted]:bg-gray-600 data-[highlighted]:text-white focus:bg-gray-600 focus:text-white"
-                              >
-                                {fontName}
-                              </SelectItem>
+                                <SelectItem key={fontName} value={fontName}>{fontName}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -202,7 +183,10 @@ export default function AddWatermarkPage() {
           {outputPdfUrl && (
             <div className="mt-6 text-center p-6 bg-green-50 dark:bg-green-900/20 border rounded-lg">
               <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">Watermark Added!</h3>
-              <Button asChild size="lg"><a href={outputPdfUrl} download={`watermarked-${file?.name}`}>Download Watermarked PDF</a></Button>
+               <div className="flex justify-center items-center gap-4">
+                <Button asChild size="lg"><a href={outputPdfUrl} download={`watermarked-${file?.name}`}>Download Watermarked PDF</a></Button>
+                <Button onClick={handleReset} variant="outline" size="lg">Watermark Another PDF</Button>
+               </div>
             </div>
           )}
         </CardContent>
