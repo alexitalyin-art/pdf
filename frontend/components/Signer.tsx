@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-// --- THIS IS THE FIX ---
-// The missing useDropzone import has been added.
 import { useDropzone } from 'react-dropzone';
 import { PDFDocument } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -131,7 +129,6 @@ export const Signer = () => {
       }
 
       const pdfBytes = await pdfDoc.save();
-      
       const arrayBuffer = new ArrayBuffer(pdfBytes.length);
       const uint8Array = new Uint8Array(arrayBuffer);
       uint8Array.set(pdfBytes);

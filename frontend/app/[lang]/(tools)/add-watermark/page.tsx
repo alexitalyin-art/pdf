@@ -34,10 +34,10 @@ export default function AddWatermarkPage() {
   const [totalPages, setTotalPages] = useState(0);
 
   const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
-  const [fontSize, setFontSize] = useState(50); // Smaller default for tiling
-  const [opacity, setOpacity] = useState(0.25); // Lower default for tiling
+  const [fontSize, setFontSize] = useState(50);
+  const [opacity, setOpacity] = useState(0.25);
   const [font, setFont] = useState<FontKey>('Helvetica');
-  const [style, setStyle] = useState<StyleKey>('tiled'); // NEW state for style
+  const [style, setStyle] = useState<StyleKey>('tiled');
   const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -48,7 +48,11 @@ export default function AddWatermarkPage() {
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false, accept: { 'application/pdf': ['.pdf'] } });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    multiple: false,
+    accept: { 'application/pdf': ['.pdf'] },
+  });
 
   const handleAddWatermark = async () => {
     if (!file) return;
@@ -60,42 +64,42 @@ export default function AddWatermarkPage() {
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const selectedFont = await pdfDoc.embedFont(fontMap[font].libFont);
       const pages = pdfDoc.getPages();
-      
+
       for (const page of pages) {
         const { width, height } = page.getSize();
-        
-        // --- NEW: Tiled vs Single Logic ---
         if (style === 'tiled') {
-            const textWidth = selectedFont.widthOfTextAtSize(watermarkText, fontSize);
-            const gap = 150; // Gap between watermarks in PDF units
-            for (let y = 0; y < height + gap; y += gap) {
-                for (let x = 0; x < width + gap; x += gap) {
-                    page.drawText(watermarkText, {
-                        x: x, y: y,
-                        font: selectedFont, size: fontSize,
-                        color: rgb(0, 0, 0), opacity: opacity,
-                        rotate: degrees(-45),
-                    });
-                }
-            }
-        } else { // Single style
-            const textWidth = selectedFont.widthOfTextAtSize(watermarkText, fontSize * 2); // Larger for single
-            const textHeight = selectedFont.heightAtSize(fontSize * 2);
-            page.drawText(watermarkText, {
-                x: width / 2 - textWidth / 2,
-                y: height / 2 - textHeight / 2,
-                font: selectedFont, size: fontSize * 2,
-                color: rgb(0, 0, 0), opacity: opacity,
+          const gap = 150;
+          for (let y = 0; y < height + gap; y += gap) {
+            for (let x = 0; x < width + gap; x += gap) {
+              page.drawText(watermarkText, {
+                x: x,
+                y: y,
+                font: selectedFont,
+                size: fontSize,
+                color: rgb(0, 0, 0),
+                opacity: opacity,
                 rotate: degrees(-45),
-            });
+              });
+            }
+          }
+        } else {
+          const largeFontSize = fontSize * 2;
+          const textWidth = selectedFont.widthOfTextAtSize(watermarkText, largeFontSize);
+          const textHeight = selectedFont.heightAtSize(largeFontSize);
+          page.drawText(watermarkText, {
+            x: width / 2 - textWidth / 2,
+            y: height / 2 - textHeight / 2,
+            font: selectedFont,
+            size: largeFontSize,
+            color: rgb(0, 0, 0),
+            opacity: opacity,
+            rotate: degrees(-45),
+          });
         }
       }
 
       const pdfBytes = await pdfDoc.save();
-      const arrayBuffer = new ArrayBuffer(pdfBytes.length);
-      const uint8Array = new Uint8Array(arrayBuffer);
-      uint8Array.set(pdfBytes);
-      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (e) {
@@ -115,7 +119,10 @@ export default function AddWatermarkPage() {
         </CardHeader>
         <CardContent>
           {!file ? (
-            <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}>
+            <div
+              {...getRootProps()}
+              className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`}
+            >
               <input {...getInputProps()} />
               <div className="flex flex-col items-center justify-center space-y-4"><UploadCloud className="w-12 h-12 text-muted-foreground" /><p className="text-lg text-muted-foreground">Drag & drop a PDF here</p></div>
             </div>
@@ -130,29 +137,48 @@ export default function AddWatermarkPage() {
                   watermark={{ text: watermarkText, fontSize: style === 'single' ? fontSize * 2 : fontSize, opacity, fontFamily: fontMap[font].cssFont, style }}
                 />
               </div>
-              <div className="lg:w-1/3 flex flex-col justify-center space-y-4">
+              <div className="lg:w-1/3 flex flex-col space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="watermarkText">Watermark Text</Label>
                   <Input type="text" id="watermarkText" value={watermarkText} onChange={e => setWatermarkText(e.target.value)} />
                 </div>
-                {/* --- NEW: Style Dropdown --- */}
                 <div className="space-y-2">
                     <Label htmlFor="style">Style</Label>
                     <Select value={style} onValueChange={(value: StyleKey) => setStyle(value)}>
-                        <SelectTrigger><SelectValue placeholder="Select style" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="tiled">Tiled</SelectItem>
-                            <SelectItem value="single">Single</SelectItem>
+                        <SelectTrigger className="bg-gray-700 text-white border border-gray-700">
+                            <SelectValue placeholder="Select style" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-700 text-white border border-gray-700 shadow-lg rounded-md z-50">
+                            <SelectItem
+                              value="tiled"
+                              className="data-[highlighted]:bg-gray-600 data-[highlighted]:text-white focus:bg-gray-600 focus:text-white"
+                            >
+                              Tiled
+                            </SelectItem>
+                            <SelectItem
+                              value="single"
+                              className="data-[highlighted]:bg-gray-600 data-[highlighted]:text-white focus:bg-gray-600 focus:text-white"
+                            >
+                              Single
+                            </SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="fontStyle">Font Style</Label>
                     <Select value={font} onValueChange={(value: FontKey) => setFont(value)}>
-                        <SelectTrigger><SelectValue placeholder="Select font" /></SelectTrigger>
-                        <SelectContent>
+                        <SelectTrigger className="bg-gray-700 text-white border border-gray-700">
+                            <SelectValue placeholder="Select font" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-700 text-white border border-gray-700 shadow-lg rounded-md z-50">
                             {Object.keys(fontMap).map(fontName => (
-                                <SelectItem key={fontName} value={fontName}>{fontName}</SelectItem>
+                              <SelectItem
+                                key={fontName}
+                                value={fontName}
+                                className="data-[highlighted]:bg-gray-600 data-[highlighted]:text-white focus:bg-gray-600 focus:text-white"
+                              >
+                                {fontName}
+                              </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
