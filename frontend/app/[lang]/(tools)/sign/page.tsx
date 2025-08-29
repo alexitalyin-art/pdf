@@ -1,7 +1,14 @@
-import { Signer } from "@/components/Signer";
 import type { Metadata } from 'next';
 import type { Locale } from '@/i18n-config';
 import { getDictionary } from '@/get-dictionary';
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const Signer = dynamic(() => import('@/components/Signer').then(mod => mod.default), {
+  ssr: false,
+  loading: () => <div className="flex justify-center p-12"><Loader2 className="w-12 h-12 animate-spin" /></div>,
+});
 
 export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
   const dictionary = await getDictionary(lang);
@@ -24,7 +31,9 @@ export default async function SignPage({ params: { lang } }: { params: { lang: L
         <p className="text-lg text-muted-foreground mt-2">{t.subtitle || 'Draw, upload, and place your signature on the document.'}</p>
       </div>
 
-      <Signer />
+      <Suspense fallback={<div className="flex justify-center p-12"><Loader2 className="w-12 h-12 animate-spin" /></div>}>
+        <Signer />
+      </Suspense>
 
     </div>
   );

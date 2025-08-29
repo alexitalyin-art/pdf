@@ -28,7 +28,7 @@ interface PlacedSignature {
   imgDataUrl: string;
 }
 
-export const Signer = () => {
+export default function Signer() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
@@ -41,6 +41,7 @@ export const Signer = () => {
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const [sigMode, setSigMode] = useState<'draw' | 'upload'>('draw');
   const [uploadedSig, setUploadedSig] = useState<string | null>(null);
+  const [pdfJsDoc, setPdfJsDoc] = useState<PDFDocumentProxy | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -102,7 +103,7 @@ export const Signer = () => {
   const updateSignatureSize = (id: number, width: number, height: number, x: number, y: number) => setPlacedSignatures(prev => prev.map(sig => sig.id === id ? { ...sig, width, height, x, y } : sig));
 
   const handleApplySignatures = async () => {
-    if (!file || placedSignatures.length === 0) return alert('Please place at least one signature.');
+    if (!file || placedSignatures.length === 0 || !pdfJsDoc) return alert('Please place at least one signature.');
     setIsProcessing(true);
     setOutputPdfUrl(null);
     try {
@@ -113,8 +114,9 @@ export const Signer = () => {
         const page = pdfDoc.getPage(sig.page - 1);
         const { width: pageWidth, height: pageHeight } = page.getSize();
         
-        const pagePreviewInViewer = await (await pdfjsLib.getDocument({data: existingPdfBytes}).promise).getPage(sig.page);
-        const scale = pageWidth / pagePreviewInViewer.getViewport({scale:1.0}).width;
+        const viewerPage = await pdfJsDoc.getPage(sig.page);
+        const viewerViewport = viewerPage.getViewport({ scale: viewerContainerRef.current!.clientWidth / viewerPage.getViewport({scale: 1.0}).width });
+        const scale = pageWidth / viewerViewport.width;
         
         const sigImage = sig.imgDataUrl.startsWith('data:image/jpeg')
           ? await pdfDoc.embedJpg(sig.imgDataUrl)
@@ -156,7 +158,15 @@ export const Signer = () => {
           ) : (
             <div className="flex flex-col lg:flex-row gap-8">
               <div className="flex-grow lg:w-2/3 relative" ref={viewerContainerRef}>
-                <PDFCarouselViewer file={file} currentPage={currentPage} onPageChange={setCurrentPage} onPdfLoad={(pdf: PDFDocumentProxy) => setTotalPages(pdf.numPages)} />
+                <PDFCarouselViewer 
+                    file={file} 
+                    currentPage={currentPage} 
+                    onPageChange={setCurrentPage} 
+                    onPdfLoad={(pdf) => {
+                        setTotalPages(pdf.numPages);
+                        setPdfJsDoc(pdf);
+                    }} 
+                />
                 {placedSignatures.filter(sig => sig.page === currentPage).map(sig => (
                   <Rnd key={sig.id} size={{ width: sig.width, height: sig.height }} position={{ x: sig.x, y: sig.y }} onDragStop={(e, d) => updateSignaturePosition(sig.id, d.x, d.y)} onResizeStop={(e, direction, ref, delta, position) => updateSignatureSize(sig.id, parseFloat(ref.style.width), parseFloat(ref.style.height), position.x, position.y)} className="border-2 border-dashed border-blue-500 group">
                     <img src={sig.imgDataUrl} alt="signature" className="w-full h-full" />
@@ -189,7 +199,6 @@ export const Signer = () => {
               </div>
             </div>
           )}
-
           {outputPdfUrl && (
             <div className="mt-6 text-center p-6 bg-green-50 dark:bg-green-900/20 border rounded-lg">
               <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">Your Signed PDF is Ready!</h3>
@@ -226,4 +235,4 @@ export const Signer = () => {
       )}
     </>
   )
-};
+}
