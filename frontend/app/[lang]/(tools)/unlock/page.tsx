@@ -1,44 +1,15 @@
-import { Unlocker } from "@/components/Unlocker";
+import { UnderMaintenance } from '@/components/UnderMaintenance';
 import type { Metadata } from 'next';
-import type { Locale } from '@/i18n-config';
-import { getDictionary } from '@/get-dictionary';
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 
-export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
-  const dictionary = await getDictionary(lang);
-  // Assuming 'unlock_pdf' exists in your dictionaries
-  const t = dictionary.unlock_pdf || {}; 
-  return {
-    title: t.meta_title || 'Unlock PDF | A2Z Tool',
-    description: t.meta_description || 'Remove the password from a protected PDF file.',
-  };
-}
+export const metadata: Metadata = {
+  title: 'Compress PDF | A2Z Tool',
+  description: 'The Compress PDF tool is temporarily unavailable. We are working on improving it.',
+};
 
-export default async function UnlockPage({ params: { lang } }: { params: { lang: Locale } }) {
-  const dictionary = await getDictionary(lang);
-  const t = dictionary.unlock_pdf;
-
+export default function CompressPage() {
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold">{t.h1}</h1>
-        <p className="text-lg text-muted-foreground mt-2">{t.subtitle}</p>
-      </div>
-
-      <Suspense fallback={<div className="flex justify-center"><Loader2 className="w-12 h-12 animate-spin" /></div>}>
-        <Unlocker dictionary={t as any} />
-      </Suspense>
-
-      <div className="prose dark:prose-invert max-w-4xl mx-auto mt-12">
-        <h2>{t.how_to_title}</h2>
-        <ol>
-          <li>{t.how_to_step_1}</li>
-          <li>{t.how_to_step_2}</li>
-          <li>{t.how_to_step_3}</li>
-          <li>{t.how_to_step_4}</li>
-        </ol>
-      </div>
+      <UnderMaintenance toolName="Compress PDF" />
     </div>
   );
 }
