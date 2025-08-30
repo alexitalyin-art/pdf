@@ -327,5 +327,27 @@
     "how_to_step_3": "Dibuja un recuadro sobre el texto a reemplazar.",
     "how_to_step_4": "Haz clic en el nuevo cuadro de texto para escribir, cambiar tamaño y color de fuente.",
     "how_to_step_5": "Haz clic en 'Aplicar ediciones y descargar' para guardar tu PDF final."
+  },
+  "protect_pdf": {
+    "meta_title": "Proteger PDF con Contraseña | Cifrar PDF Online Gratis | A2Z Tool",
+    "meta_description": "Añade una contraseña a tu PDF para protegerlo con A2Z Tool. Cifra tu documento fácilmente online. Rápido, seguro y gratuito.",
+    "h1": "Herramienta Online Gratuita para Proteger PDFs de A2Z Tool",
+    "subtitle": "Cifra tu PDF con una contraseña para mayor seguridad.",
+    "dropzone_text": "Arrastra y suelta un PDF aquí para proteger",
+    "label_password": "Contraseña",
+    "placeholder_password": "Introduce una contraseña segura",
+    "label_confirm_password": "Confirmar contraseña",
+    "placeholder_confirm_password": "Vuelve a introducir la contraseña",
+    "button_protect": "Proteger PDF",
+    "processing": "Protegiendo...",
+    "success_message": "¡PDF protegido con éxito!",
+    "download_button": "Descargar PDF protegido",
+    "error_message_mismatch": "Las contraseñas no coinciden. Intenta nuevamente.",
+    "error_message_general": "Ocurrió un error al proteger el PDF.",
+    "how_to_title": "Cómo Proteger un PDF con Contraseña",
+    "how_to_step_1": "Sube tu archivo PDF.",
+    "how_to_step_2": "Introduce y confirma la contraseña deseada.",
+    "how_to_step_3": "Haz clic en 'Proteger PDF'.",
+    "how_to_step_4": "Descarga tu PDF protegido."
   }
 }

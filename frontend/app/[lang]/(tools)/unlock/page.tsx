@@ -7,10 +7,11 @@ import { Loader2 } from 'lucide-react';
 
 export async function generateMetadata({ params: { lang } }: { params: { lang: Locale } }): Promise<Metadata> {
   const dictionary = await getDictionary(lang);
-  const t = dictionary.unlock_pdf;
+  // Assuming 'unlock_pdf' exists in your dictionaries
+  const t = dictionary.unlock_pdf || {}; 
   return {
-    title: t.meta_title,
-    description: t.meta_description,
+    title: t.meta_title || 'Unlock PDF | A2Z Tool',
+    description: t.meta_description || 'Remove the password from a protected PDF file.',
   };
 }
 

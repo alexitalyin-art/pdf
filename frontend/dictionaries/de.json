@@ -316,6 +316,23 @@
     "how_to_step_1": "Laden Sie Ihre PDF-Datei hoch.",
     "how_to_step_2": "Klicken Sie auf die Inhalte, die Sie löschen oder bearbeiten möchten.",
     "how_to_step_3": "Wenden Sie die Änderungen an und laden Sie das aktualisierte PDF herunter."
+  },
+  "Potect_pdf": {
+    "meta_title": "PDF mit Passwort schützen | Kostenloser Online-PDF-Schutz | A2Z Tool",
+    "meta_description": "Schützen Sie Ihr PDF mit einem Passwort, um unbefugten Zugriff zu verhindern. Schnell, sicher und kostenlos mit A2Z Tool.",
+    "h1": "Kostenloses Online-PDF-Passwortschutz-Tool von A2Z Tool",
+    "subtitle": "Fügen Sie ein Passwort zu Ihrem PDF hinzu, um es zu schützen.",
+    "dropzone_text": "Ziehen Sie ein PDF hierher, um es zu schützen",
+    "label_password": "Passwort",
+    "placeholder_password": "Geben Sie ein Passwort ein",
+    "button_protect": "PDF schützen & herunterladen",
+    "processing": "Schützen...",
+    "success_message": "PDF erfolgreich geschützt!",
+    "download_button": "Geschütztes PDF herunterladen",
+    "how_to_title": "So schützen Sie ein PDF mit einem Passwort",
+    "how_to_step_1": "Laden Sie Ihre PDF-Datei hoch.",
+    "how_to_step_2": "Geben Sie das gewünschte Passwort ein.",
+    "how_to_step_3": "Klicken Sie auf 'PDF schützen & herunterladen', um die Datei zu speichern."
   }
 }
 

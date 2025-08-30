@@ -20,6 +20,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^0.378.0",
     "negotiator": "^0.6.3",
     "next": "^14.2.32",
@@ -31,6 +32,8 @@
     "react-image-crop": "^11.0.5",
     "react-rnd": "^10.4.10",
     "react-signature-canvas": "^1.0.6",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1",
     "server-only": "^0.0.1",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7"

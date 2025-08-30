@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PDFDocument } from 'pdf-lib';
-import { UploadCloud, Unlock as UnlockIcon } from 'lucide-react';
+import { UploadCloud, Unlock as UnlockIcon, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,9 +51,9 @@ export const Unlocker = ({ dictionary }: { dictionary: UnlockToolDict }) => {
     setError(null);
     try {
       const existingPdfBytes = await file.arrayBuffer();
-      // @ts-ignore - pdf-lib types are not perfectly aligned with all TypeScript versions
+      // @ts-ignore - This property is valid but types can be inconsistent in some environments
       const pdfDoc = await PDFDocument.load(existingPdfBytes, { password: password });
-      
+
       const pdfBytes = await pdfDoc.save();
       
       const arrayBuffer = new ArrayBuffer(pdfBytes.length);
@@ -97,7 +97,8 @@ export const Unlocker = ({ dictionary }: { dictionary: UnlockToolDict }) => {
                   placeholder={dictionary.placeholder_password}
               />
             </div>
-            <Button onClick={handleUnlock} disabled={isProcessing} className="w-full text-lg py-6">
+            <Button onClick={handleUnlock} disabled={isProcessing || !password} className="w-full text-lg py-6">
+              {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <UnlockIcon className="mr-2 h-5 w-5" />
               {isProcessing ? dictionary.processing : dictionary.button_unlock}
             </Button>

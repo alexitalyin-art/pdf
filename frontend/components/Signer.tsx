@@ -28,7 +28,21 @@ interface PlacedSignature {
   imgDataUrl: string;
 }
 
-export default function Signer() {
+interface SignToolDict {
+    dropzone_text: string;
+    draw_signature: string;
+    upload_signature: string;
+    your_signature: string;
+    change: string;
+    place_on_page: string;
+    apply_and_download: string;
+    reset: string;
+    processing: string;
+    success_message: string;
+    download_button: string;
+}
+
+export const Signer = ({ dictionary }: { dictionary: SignToolDict }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
@@ -139,7 +153,6 @@ export default function Signer() {
       const url = URL.createObjectURL(blob);
       setOutputPdfUrl(url);
     } catch (error) {
-      console.error('Error applying signatures:', error);
       alert('An error occurred.');
     } finally {
       setIsProcessing(false);
@@ -147,26 +160,20 @@ export default function Signer() {
   };
   
   return (
+    // --- THIS IS THE FIX ---
+    // The entire component is wrapped in a single Fragment <> ... </>
     <>
       <Card className="w-full max-w-5xl mx-auto">
           <CardContent className="p-6">
           {!file ? (
             <div {...getRootProps()} className={`p-10 border-2 border-dashed rounded-lg cursor-pointer ${isDragActive ? 'border-primary bg-secondary' : 'border-border'}`} onClick={open}>
               <input {...getInputProps()} />
-              <div className="flex flex-col items-center justify-center space-y-4"><UploadCloud className="w-12 h-12 text-muted-foreground" /><p className="text-lg text-muted-foreground">Drag & drop a PDF here</p></div>
+              <div className="flex flex-col items-center justify-center space-y-4"><UploadCloud className="w-12 h-12 text-muted-foreground" /><p className="text-lg text-muted-foreground">{dictionary.dropzone_text}</p></div>
             </div>
           ) : (
             <div className="flex flex-col lg:flex-row gap-8">
               <div className="flex-grow lg:w-2/3 relative" ref={viewerContainerRef}>
-                <PDFCarouselViewer 
-                    file={file} 
-                    currentPage={currentPage} 
-                    onPageChange={setCurrentPage} 
-                    onPdfLoad={(pdf) => {
-                        setTotalPages(pdf.numPages);
-                        setPdfJsDoc(pdf);
-                    }} 
-                />
+                <PDFCarouselViewer file={file} currentPage={currentPage} onPageChange={setCurrentPage} onPdfLoad={(pdf) => { setTotalPages(pdf.numPages); setPdfJsDoc(pdf); }} />
                 {placedSignatures.filter(sig => sig.page === currentPage).map(sig => (
                   <Rnd key={sig.id} size={{ width: sig.width, height: sig.height }} position={{ x: sig.x, y: sig.y }} onDragStop={(e, d) => updateSignaturePosition(sig.id, d.x, d.y)} onResizeStop={(e, direction, ref, delta, position) => updateSignatureSize(sig.id, parseFloat(ref.style.width), parseFloat(ref.style.height), position.x, position.y)} className="border-2 border-dashed border-blue-500 group">
                     <img src={sig.imgDataUrl} alt="signature" className="w-full h-full" />
@@ -177,23 +184,23 @@ export default function Signer() {
               <div className="lg:w-1/3 flex flex-col items-center">
                 {!signatureDataUrl ? (
                   <div className="w-full space-y-3">
-                      <Button onClick={() => openSignatureModal('draw')} className="w-full flex items-center justify-center gap-2"><Edit /> Draw Signature</Button>
-                      <Button onClick={() => openSignatureModal('upload')} variant="secondary" className="w-full flex items-center justify-center gap-2"><ImageUp /> Upload Signature</Button>
+                      <Button onClick={() => openSignatureModal('draw')} className="w-full flex items-center justify-center gap-2"><Edit /> {dictionary.draw_signature}</Button>
+                      <Button onClick={() => openSignatureModal('upload')} variant="secondary" className="w-full flex items-center justify-center gap-2"><ImageUp /> {dictionary.upload_signature}</Button>
                   </div>
                 ) : (
                   <div className="w-full text-center">
-                    <h3 className="text-lg font-semibold mb-2">Your Signature</h3>
+                    <h3 className="text-lg font-semibold mb-2">{dictionary.your_signature}</h3>
                     <div className="p-2 bg-secondary border rounded-lg"><img src={signatureDataUrl} alt="Your saved signature" className="mx-auto" /></div>
-                    <Button onClick={() => openSignatureModal(sigMode)} variant="link" className="mt-2">Change</Button>
-                    <Button onClick={addSignatureToPage} className="w-full flex items-center justify-center gap-2 mt-4"><Move /> Place on Page</Button>
+                    <Button onClick={() => openSignatureModal(sigMode)} variant="link" className="mt-2">{dictionary.change}</Button>
+                    <Button onClick={addSignatureToPage} className="w-full flex items-center justify-center gap-2 mt-4"><Move /> {dictionary.place_on_page}</Button>
                   </div>
                 )}
                 <div className="w-full mt-auto pt-4 space-y-3">
                   <Button onClick={handleReset} disabled={!signatureDataUrl && placedSignatures.length === 0} variant="destructive" className="w-full flex items-center justify-center gap-2">
-                      <RotateCcw /> Reset
+                      <RotateCcw /> {dictionary.reset}
                   </Button>
                   <Button onClick={handleApplySignatures} disabled={isProcessing || placedSignatures.length === 0} className="w-full text-lg py-6">
-                    <Save /> Apply & Download
+                    <Save /> {isProcessing ? dictionary.processing : dictionary.apply_and_download}
                   </Button>
                 </div>
               </div>
@@ -201,10 +208,8 @@ export default function Signer() {
           )}
           {outputPdfUrl && (
             <div className="mt-6 text-center p-6 bg-green-50 dark:bg-green-900/20 border rounded-lg">
-              <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">Your Signed PDF is Ready!</h3>
-              <Button asChild size="lg">
-                <a href={outputPdfUrl} download={`signed-${file?.name}`}>Download Signed PDF</a>
-              </Button>
+              <h3 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">{dictionary.success_message}</h3>
+              <Button asChild size="lg"><a href={outputPdfUrl} download={`signed-${file?.name}`}>{dictionary.download_button}</a></Button>
             </div>
           )}
           </CardContent>
@@ -234,5 +239,5 @@ export default function Signer() {
         </div>
       )}
     </>
-  )
-}
+  );
+};

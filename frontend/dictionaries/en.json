@@ -385,5 +385,24 @@
     "how_to_step_2": "Our server will analyze your file to find the best way to reduce its size.",
     "how_to_step_3": "Click the 'Compress PDF' button to start the process.",
     "how_to_step_4": "Download your new, smaller PDF file."
+  },
+  "protect_pdf": {
+    "meta_title": "Protect PDF with Password | Free PDF Encryption | A2Z Tool",
+    "meta_description": "Easily add a password to your PDF file to protect it from unauthorized access. A2Z Tool's free PDF protection tool is fast, secure, and browser-based.",
+    "h1": "A2Z Tool's Free Online Tool to Protect PDFs",
+    "subtitle": "Add a password to encrypt and secure your PDF document.",
+    "dropzone_text": "Drag & drop a PDF here to add a password",
+    "password_label": "New Password",
+    "confirm_password_label": "Confirm Password",
+    "passwords_do_not_match": "Passwords do not match.",
+    "button_protect": "Protect PDF",
+    "processing": "Protecting...",
+    "success_message": "PDF Protected Successfully!",
+    "download_button": "Download Protected PDF",
+    "how_to_title": "How to Protect a PDF with a Password",
+    "how_to_step_1": "Upload your PDF file.",
+    "how_to_step_2": "Enter a strong password in the first input field.",
+    "how_to_step_3": "Confirm your password by typing it again in the second field.",
+    "how_to_step_4": "Click the 'Protect PDF' button to encrypt your file and get the download link."
   }
 }

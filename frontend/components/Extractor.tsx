@@ -132,4 +132,4 @@ export const Extractor = ({ dictionary }: { dictionary: ExtractToolDict }) => {
         </CardContent>
     </Card>
   );
-};
+};  
