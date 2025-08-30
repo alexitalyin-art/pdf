@@ -15,7 +15,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPages = ['about', 'contact', 'privacy-policy', 'terms-of-service', 'cookie-policy', 'blog'];
   
-  // By explicitly typing the array, we prevent the TypeScript error.
   const allUrls: MetadataRoute.Sitemap = [];
 
   locales.forEach(lang => {
