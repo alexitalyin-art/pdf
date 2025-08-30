@@ -1,9 +1,21 @@
 {
   "homepage": {
     "title": "A2Z Tool - Free Online PDF Tools",
-    "subtitle": "All the tools you need to work with PDFs, 100% free and secure.",
-    "meta_title": "Free Online PDF Tools | Merge, Split, Compress, Edit PDFs | A2Z Tool",
-    "meta_description": "A2Z Tool offers free online PDF tools to merge, split, compress, edit, and manage your PDF files securely in your browser. No signup required."
+    "subtitle": "All the tools you need to work with PDFs, 100% free, secure, and run in your browser – no signup needed.",
+    "why_title": "Why Choose A2Z Tool?",
+    "why_secure_title": "Complete Privacy",
+    "why_secure_desc": "Your files are processed entirely in your browser. Nothing is ever uploaded to our servers, guaranteeing your data remains 100% private.",
+    "why_comprehensive_title": "All The Tools You Need",
+    "why_comprehensive_desc": "From merging and compressing to signing and editing, we offer a full suite of tools to handle any PDF task you have.",
+    "why_easy_title": "Simple and Fast",
+    "why_easy_desc": "No sign-ups, no ads, just simple, fast tools that get the job done. Our clean interface is designed to be intuitive for everyone.",
+    "faq_title": "Frequently Asked Questions",
+    "faq_q1": "Are the tools on A2Z Tool really free?",
+    "faq_a1": "Yes, all browser-based tools on our site are completely free to use without any limits or the need to sign up.",
+    "faq_q2": "Is it safe to use online PDF tools?",
+    "faq_a2": "It is 100% safe on A2Z Tool. Unlike other sites, our tools work on your computer ('client-side'), so your files never leave your device. We never upload or store your documents.",
+    "faq_q3": "Do I need to install any software?",
+    "faq_a3": "No. All of our tools work directly in your web browser. There is nothing to install. The site works on Windows, Mac, Linux, and mobile devices."
   },
   "merge_pdf": {
     "meta_title": "Merge PDF Files Free Online | PDF Combiner Tool | A2Z Tool",
@@ -357,6 +369,21 @@
     "how_to_step_4": "Edit text style, size, and color.",
     "how_to_step_5": "Click 'Apply Edits & Download' to get final PDF.",
     "related_tools": ["split_pdf", "add_watermark"]
+  },
+  "compress_pdf": {
+    "meta_title": "Compress PDF | Reduce PDF File Size Online Free | A2Z Tool",
+    "meta_description": "Reduce the file size of your PDF documents for free with the online PDF compressor from A2Z Tool. Maintain quality while making files easy to email and store.",
+    "h1": "A2Z Tool's Free Online PDF Compressor",
+    "subtitle": "Reduce the file size of your PDF while maintaining the best possible quality.",
+    "dropzone_text": "Drag & drop a PDF here to start compressing",
+    "button_compress": "Compress PDF",
+    "processing": "Compressing...",
+    "success_message": "Compression Complete!",
+    "download_button": "Download Compressed PDF",
+    "how_to_title": "How to Compress a PDF",
+    "how_to_step_1": "Upload your PDF file.",
+    "how_to_step_2": "Our server will analyze your file to find the best way to reduce its size.",
+    "how_to_step_3": "Click the 'Compress PDF' button to start the process.",
+    "how_to_step_4": "Download your new, smaller PDF file."
   }
 }
-

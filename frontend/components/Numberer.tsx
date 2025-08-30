@@ -68,9 +68,9 @@ export const Numberer = ({ dictionary }: { dictionary: NumbererToolDict }) => {
         let x = 0, y = 0;
 
         switch (position) {
-            case 'top-left': x = margin; y = height - margin - fontSize; break;
-            case 'top-center': x = width / 2 - textWidth / 2; y = height - margin - fontSize; break;
-            case 'top-right': x = width - textWidth - margin; y = height - margin - fontSize; break;
+            case 'top-left': x = margin; y = height - margin; break;
+            case 'top-center': x = width / 2 - textWidth / 2; y = height - margin; break;
+            case 'top-right': x = width - textWidth - margin; y = height - margin; break;
             case 'bottom-left': x = margin; y = margin; break;
             case 'bottom-center': x = width / 2 - textWidth / 2; y = margin; break;
             case 'bottom-right': x = width - textWidth - margin; y = margin; break;
@@ -124,7 +124,7 @@ export const Numberer = ({ dictionary }: { dictionary: NumbererToolDict }) => {
             <div className="space-y-2">
               <Label htmlFor="position">{dictionary.position_label}</Label>
               <Select value={position} onValueChange={(value: Position) => setPosition(value)}>
-                  <SelectTrigger className="bg-background border"><SelectValue placeholder="Select position" /></SelectTrigger>
+                  <SelectTrigger className="bg-background border"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-background border">
                       {positionOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                   </SelectContent>

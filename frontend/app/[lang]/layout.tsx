@@ -3,12 +3,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Analytics } from "@/components/Analytics"; // Import the new component
 import type { Locale } from "@/i18n-config";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Zero-Cost PDF Tools",
+  title: "A2Z Tool - Free Online PDF Tools",
   description: "A complete suite of free and secure PDF tools in multiple languages.",
 };
 
@@ -31,6 +32,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <Analytics /> {/* Add the Analytics component here */}
       </body>
     </html>
   );
