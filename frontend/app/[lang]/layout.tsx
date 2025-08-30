@@ -3,14 +3,19 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Analytics } from "@/components/Analytics"; // Import the new component
+import { Analytics } from "@/components/Analytics";
 import type { Locale } from "@/i18n-config";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// This metadata is for the whole site
 export const metadata: Metadata = {
   title: "A2Z Tool - Free Online PDF Tools",
   description: "A complete suite of free and secure PDF tools in multiple languages.",
+  // --- THIS IS THE NEW PART ---
+  verification: {
+    google: 'ZudKOKP6Q4xPeJDU83AXiaDesb7jR-N8zeyhxRJthv8', // <-- PASTE YOUR CODE HERE
+  },
 };
 
 const rtlLocales: Locale[] = ['ar', 'ur'];
@@ -32,7 +37,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
-        <Analytics /> {/* Add the Analytics component here */}
+        <Analytics />
       </body>
     </html>
   );
