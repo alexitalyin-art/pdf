@@ -1,6 +1,9 @@
-# Allow all friendly bots to crawl the entire site.
+# *
 User-agent: *
 Allow: /
 
-# Provide the location of the sitemap.
+# Host
+Host: https://a2ztool.vercel.app
+
+# Sitemaps
 Sitemap: https://a2ztool.vercel.app/sitemap.xml
