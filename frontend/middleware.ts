@@ -5,15 +5,12 @@ import { i18n } from './i18n-config'
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Check if there is any supported locale in the pathname
   const pathnameIsMissingLocale = i18n.locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   )
 
-  // Redirect if there is no locale
   if (pathnameIsMissingLocale) {
-    const locale = i18n.defaultLocale // Always use the default locale ('en')
-
+    const locale = i18n.defaultLocale
     return NextResponse.redirect(
       new URL(`/${locale}${pathname}`, request.url)
     )
@@ -21,7 +18,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // --- THIS IS THE FIX ---
-  // We have added 'sitemap.xml' to the list of files to ignore.
-  matcher: ['/((?!api|_next/static|_next/image|sitemap.xml|favicon.ico).*)'],
+  // The matcher now correctly ignores sitemap.xml and robots.txt
+  matcher: ['/((?!api|_next/static|_next/image|sitemap.xml|robots.txt|favicon.ico).*)'],
 }
