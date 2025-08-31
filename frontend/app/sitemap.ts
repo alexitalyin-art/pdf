@@ -10,7 +10,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'merge', 'split', 'compress', 'add-watermark', 'edit-metadata', 
     'fill-form', 'rotate', 'remove-pages', 'extract-pages', 
     'add-page-numbers', 'crop', 'sign', 'unlock', 'add-image', 'flatten',
-    'pdf-to-jpg', 'jpg-to-pdf', 'protect'
+    'pdf-to-jpg', 'jpg-to-pdf'
+    // We removed 'protect'
   ];
 
   const staticPages = ['about', 'contact', 'privacy-policy', 'terms-of-service', 'cookie-policy', 'blog'];
@@ -22,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     allUrls.push({
       url: `${baseUrl}/${lang}`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily', // UPDATED
       priority: 1,
     });
 
@@ -31,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         allUrls.push({
             url: `${baseUrl}/${lang}/${slug}`,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
+            changeFrequency: 'daily', // UPDATED
             priority: 0.8,
         });
     });
@@ -41,7 +42,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         allUrls.push({
             url: `${baseUrl}/${lang}/${slug}`,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
+            changeFrequency: 'daily', // UPDATED
             priority: 0.6,
         });
     });

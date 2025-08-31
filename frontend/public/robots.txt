@@ -1,0 +1,6 @@
+# Allow all friendly bots to crawl the entire site.
+User-agent: *
+Allow: /
+
+# Provide the location of the sitemap.
+Sitemap: https://a2ztool.vercel.app/sitemap.xml
