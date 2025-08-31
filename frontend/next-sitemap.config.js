@@ -1,43 +1,54 @@
 /** @type {import('next-sitemap').IConfig} */
+
+// List all your languages and tools here
+const locales = ['en', 'es', 'hi', 'pt', 'zh', 'fr', 'ar', 'de', 'ru', 'ur'];
+const toolSlugs = [
+    'merge', 'split', 'compress', 'add-watermark', 'edit-metadata', 
+    'fill-form', 'rotate', 'remove-pages', 'extract-pages', 
+    'add-page-numbers', 'crop', 'sign', 'unlock', 'add-image', 'flatten',
+    'pdf-to-jpg', 'jpg-to-pdf'
+];
+const staticPages = ['about', 'contact', 'privacy-policy', 'terms-of-service', 'cookie-policy', 'blog'];
+
 module.exports = {
   siteUrl: 'https://a2ztool.vercel.app',
-  generateRobotsTxt: true, // This will also create a robots.txt for you
-  // This function adds all your language versions to the sitemap automatically
-  transform: async (config, path) => {
-    // These are the pages that should exist in every language
-    const regularPages = [
-        '/',
-        '/about',
-        '/contact',
-        '/privacy-policy',
-        '/terms-of-service',
-        '/cookie-policy',
-        '/blog'
-        // Add other static pages here
-    ];
+  generateRobotsTxt: true, // This will create a new, correct robots.txt
+  
+  // This is a more robust way to add all your pages
+  additionalPaths: async (config) => {
+    const paths = [];
 
-    // Exclude the base path (e.g., /en, /es) and blog post pages from this logic
-    if (regularPages.includes(path.replace(/\/(en|es|hi|pt|zh|fr|ar|de|ru|ur)/, ''))) {
-      return {
-        loc: path,
+    // Add all language homepages
+    locales.forEach(lang => {
+      paths.push({
+        loc: `/${lang}`,
         changefreq: 'daily',
-        priority: path === '/' ? 1 : 0.7,
-        lastmod: new Date().toISOString(),
-        // Add alternate language links for every language
-        alternateRefs: config.alternateUrls ? config.alternateUrls.map(url => ({
-            href: url + path,
-            hreflang: url.split('/').pop(),
-        })) : [],
-      }
-    }
+        priority: 1.0,
+      });
+    });
 
-    // You can add more specific logic for blog posts or other dynamic pages here if needed
+    // Add all tool pages for every language
+    locales.forEach(lang => {
+      toolSlugs.forEach(slug => {
+        paths.push({
+          loc: `/${lang}/${slug}`,
+          changefreq: 'monthly',
+          priority: 0.8,
+        });
+      });
+    });
+    
+    // Add all static pages for every language
+    locales.forEach(lang => {
+      staticPages.forEach(slug => {
+        paths.push({
+          loc: `/${lang}/${slug}`,
+          changefreq: 'weekly',
+          priority: 0.6,
+        });
+      });
+    });
 
-    return {
-      loc: path,
-      changefreq: 'daily',
-      priority: 0.7,
-      lastmod: new Date().toISOString(),
-    }
+    return paths;
   },
-}
+};
