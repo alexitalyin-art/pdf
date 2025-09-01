@@ -8,13 +8,14 @@ import type { Locale } from "@/i18n-config";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// This metadata is for the whole site
+// --- THIS IS THE FIX ---
+// We've added `metadataBase` which helps Google understand your official URL.
 export const metadata: Metadata = {
+  metadataBase: new URL('https://a2ztool.vercel.app'), // Add your base URL
   title: "A2Z Tool - Free Online PDF Tools",
   description: "A complete suite of free and secure PDF tools in multiple languages.",
-  // --- THIS IS THE NEW PART ---
   verification: {
-    google: 'ZudKOKP6Q4xPeJDU83AXiaDesb7jR-N8zeyhxRJthv8', // <-- PASTE YOUR CODE HERE
+    google: 'YOUR_UNIQUE_CODE_HERE', // Make sure your verification code is still here
   },
 };
 
