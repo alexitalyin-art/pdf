@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "A2Z Tool - Free Online PDF Tools",
   description: "A complete suite of free and secure PDF tools in multiple languages.",
   verification: {
-    google: 'YOUR_GOOGLE_VERIFICATION_CODE', // Make sure to put your code here
+    google: 'ZudKOKP6Q4xPeJDU83AXiaDesb7jR-N8zeyhxRJthv8', // Make sure to put your code here
   },
 };
 
