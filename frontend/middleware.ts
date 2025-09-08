@@ -18,6 +18,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // The matcher now correctly ignores sitemap.xml and robots.txt
   matcher: ['/((?!api|_next/static|_next/image|sitemap.xml|robots.txt|favicon.ico).*)'],
 }

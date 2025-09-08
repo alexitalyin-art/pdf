@@ -1,9 +1,4 @@
-# *
 User-agent: *
 Allow: /
 
-# Host
-Host: https://a2ztool.vercel.app
-
-# Sitemaps
 Sitemap: https://a2ztool.vercel.app/sitemap.xml
