@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Analytics } from "@/components/Analytics";
+import { Analytics } from "@vercel/analytics/react"; // This is for Vercel
+import { GoogleAnalytics } from "@/components/GoogleAnalytics"; // This is for Google
 import type { Locale } from "@/i18n-config";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   title: "A2Z Tool - Free Online PDF Tools",
   description: "A complete suite of free and secure PDF tools in multiple languages.",
   verification: {
-    google: 'ZudKOKP6Q4xPeJDU83AXiaDesb7jR-N8zeyhxRJthv8', // Make sure to put your code here
+    google: 'ZudKOKP6Q4xPeJDU83AXiaDesb7jR-N8zeyhxRJthv8', // Make sure your code is here
   },
 };
 
@@ -28,8 +29,6 @@ export default function RootLayout({
 }>) {
   const isRtl = rtlLocales.includes(params.lang);
 
-  // --- THIS IS THE NEW PART ---
-  // This JSON-LD script is the "business card" for Google
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -41,7 +40,6 @@ export default function RootLayout({
   return (
     <html lang={params.lang} dir={isRtl ? 'rtl' : 'ltr'}>
       <body>
-        {/* Add the structured data script to the head */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -52,8 +50,9 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
-          <Analytics />
         </div>
+        <Analytics /> {/* This is for Vercel Analytics */}
+        <GoogleAnalytics /> {/* This is for Google Analytics */}
       </body>
     </html>
   );
