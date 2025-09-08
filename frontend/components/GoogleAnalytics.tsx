@@ -2,7 +2,7 @@
 
 import Script from 'next/script'
 
-export const Analytics = () => {
+export const GoogleAnalytics = () => {
     const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
     if (!gaId) {
