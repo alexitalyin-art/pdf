@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react"; // This is for Vercel
 import { GoogleAnalytics } from "@/components/GoogleAnalytics"; // This is for Google
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Locale } from "@/i18n-config";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -53,6 +54,7 @@ export default function RootLayout({
         </div>
         <Analytics /> {/* This is for Vercel Analytics */}
         <GoogleAnalytics /> {/* This is for Google Analytics */}
+        <SpeedInsights />
       </body>
     </html>
   );
